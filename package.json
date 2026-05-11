@@ -1,0 +1,37 @@
+{
+  "name": "ja-form-validators",
+  "version": "0.1.0",
+  "description": "Tiny TypeScript validators for Japanese form inputs.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "keywords": [
+    "japanese",
+    "validator",
+    "validation",
+    "form",
+    "input",
+    "postal-code",
+    "phone-number",
+    "typescript"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
