@@ -107,6 +107,17 @@ isMobilePhoneJP(value)
 
 `ja-form-validators` only validates strings.
 
+---
+
+## Live Demo
+
+- Demo → `https://fusaihanabi.github.io/ja-form-validators/`
+- npm → `https://www.npmjs.com/package/ja-form-validators`
+- GitHub → `https://github.com/fusaihanabi/ja-form-validators`
+- Official → `https://dl.fusai-hanabi.com`
+
+---
+
 It does not:
 
 - normalize input

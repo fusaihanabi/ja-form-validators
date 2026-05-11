@@ -5,7 +5,7 @@ import {
   isPhoneNumberJP,
   isPostalCodeJP,
   isZenkaku,
-} from "../src"
+} from "../src/index.ts"
 
 describe("isPostalCodeJP", () => {
   it("returns true for valid Japanese postal codes", () => {
