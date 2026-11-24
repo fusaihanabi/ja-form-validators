@@ -8,6 +8,7 @@ import {
   isPostalCodeJP,
   isStrictPhoneNumberJP,
   isZenkaku,
+  validateStrictPhoneNumberJP,
 } from "../src/index.ts"
 
 describe("isPostalCodeJP", () => {
@@ -135,6 +136,45 @@ describe("isStrictPhoneNumberJP", () => {
     expect(isStrictPhoneNumberJP("+81-50-1234-5678", { kinds, format: "either" })).toBe(false)
     expect(isStrictPhoneNumberJP("+81120123456", { kinds, format: "either" })).toBe(false)
     expect(isStrictPhoneNumberJP("+818001234567", { kinds, format: "either" })).toBe(false)
+  })
+})
+
+describe("validateStrictPhoneNumberJP", () => {
+  const contact = { kinds: ["landline", "mobile"], format: "domestic" } as const
+
+  it.each([
+    ["03-1234-5678", contact, "landline", "domestic"],
+    ["09012345678", contact, "mobile", "domestic"],
+    ["050-1234-5678", {}, "ip", "domestic"],
+    ["0800-123-4567", {}, "tollFree", "domestic"],
+    ["08001234567", {}, "tollFree", "domestic"],
+    ["08001234567", { kinds: ["tollFree", "mobile"] }, "tollFree", "domestic"],
+    ["08001234567", { kinds: ["mobile"] }, "mobile", "domestic"],
+    ["+81-3-1234-5678", { kinds: ["landline"], format: "either" }, "landline", "international"],
+    ["+819012345678", { format: "international" }, "mobile", "international"],
+  ] as const)("reports the kind and notation of %s", (value, options, kind, format) => {
+    const result = validateStrictPhoneNumberJP(value, options)
+    expect(result).toEqual({ ok: true, kind, format })
+    expect(isStrictPhoneNumberJP(value, options)).toBe(result.ok)
+  })
+
+  it.each([
+    ["", { kinds: [], format: "international" }, "empty"],
+    ["　 ", contact, "invalid_format"],
+    ["+81-03-1234-5678", contact, "invalid_format"],
+    ["+81-50-1234-5678", { kinds: ["ip"], format: "either" }, "invalid_format"],
+    ["03-12345678", contact, "invalid_format"],
+    ["0101234567", contact, "invalid_format"],
+    ["050-1234-5678", contact, "kind_not_allowed"],
+    ["03-1234-5678", {}, "kind_not_allowed"],
+    ["+81-90-1234-5678", { kinds: ["landline"], format: "domestic" }, "kind_not_allowed"],
+    ["09012345678", { kinds: [], format: "either" }, "kind_not_allowed"],
+    ["+81-3-1234-5678", contact, "format_not_allowed"],
+    ["050-1234-5678", { kinds: ["ip"], format: "international" }, "format_not_allowed"],
+  ] as const)("reports why %j was rejected", (value, options, reason) => {
+    const result = validateStrictPhoneNumberJP(value, options)
+    expect(result).toEqual({ ok: false, reason })
+    expect(isStrictPhoneNumberJP(value, options)).toBe(result.ok)
   })
 })
 

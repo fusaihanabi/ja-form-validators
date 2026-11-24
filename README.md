@@ -28,6 +28,7 @@ import {
   isKatakana,
   isFurigana,
   isZenkaku,
+  validateStrictPhoneNumberJP,
 } from "ja-form-validators"
 
 isPostalCodeJP("150-0001")
@@ -123,6 +124,33 @@ isStrictPhoneNumberJP("+819012345678", options)    // true
 isStrictPhoneNumberJP("+81-03-1234-5678", options) // false
 isStrictPhoneNumberJP("+813-1234-5678", options)   // false
 ```
+
+### 理由付きの電話番号判定 `validateStrictPhoneNumberJP`
+
+`isStrictPhoneNumberJP` と同じ `StrictPhoneNumberOptions` を使います。成功時は `ok: true`、番号の種類 `kind`、入力の表記 `format` が返ります。失敗時は `ok: false` と理由コード `reason` が返ります。TypeScript では `StrictPhoneNumberResult` の `ok` で結果を絞り込めます。
+
+```ts
+const options = { kinds: ["landline", "mobile"], format: "domestic" } as const
+
+validateStrictPhoneNumberJP("03-1234-5678", options)
+// { ok: true, kind: "landline", format: "domestic" }
+
+validateStrictPhoneNumberJP("+81-3-1234-5678", options)
+// { ok: false, reason: "format_not_allowed" }
+```
+
+上から順に判定し、最初に該当した理由を返します。下表は国内表記の固定電話と携帯電話を受け付けるフォームの例です。
+
+| 理由コード | 条件 | 表示メッセージの例 |
+| --- | --- | --- |
+| `empty` | 空文字 | 電話番号を入力してください。 |
+| `invalid_format` | 対応する電話番号形式に当てはまらない入力。空白だけの入力も含みます。 | 03-1234-5678 のように入力してください。 |
+| `kind_not_allowed` | 有効な形式だが、指定した `kinds` の対象外 | 固定電話または携帯電話の番号を入力してください。 |
+| `format_not_allowed` | 許可された番号の種類だが、指定した `format` の対象外 | 国内表記（03-1234-5678 など）で入力してください。 |
+
+成功結果の `format` は `"domestic"` または `"international"` です。`isStrictPhoneNumberJP` は同じ判定結果の `ok` を返します。
+
+ハイフンなしの `0800` で始まる入力は、形式上、携帯電話とフリーダイヤルの両方に当てはまる場合があります。両方を許可した場合は `tollFree` が返ります。
 
 ### `isKatakana(value: string): boolean`
 

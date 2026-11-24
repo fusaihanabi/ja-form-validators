@@ -27,6 +27,21 @@ export function isLandlinePhoneJP(value: string): boolean {
 export type PhoneNumberKind = "landline" | "mobile" | "ip" | "tollFree"
 export type PhoneNumberFormat = "domestic" | "international" | "either"
 
+export interface StrictPhoneNumberOptions {
+  kinds?: readonly PhoneNumberKind[]
+  format?: PhoneNumberFormat
+}
+
+export type StrictPhoneNumberFailureReason =
+  | "empty"
+  | "invalid_format"
+  | "kind_not_allowed"
+  | "format_not_allowed"
+
+export type StrictPhoneNumberResult =
+  | { ok: true; kind: PhoneNumberKind; format: Exclude<PhoneNumberFormat, "either"> }
+  | { ok: false; reason: StrictPhoneNumberFailureReason }
+
 const strictPhoneValidators: Record<PhoneNumberKind, (value: string) => boolean> = {
   landline: isLandlinePhoneJP,
   mobile: (value) => /^(?:070|080|090)(-?)\d{4}\1\d{4}$/.test(value),
@@ -34,28 +49,47 @@ const strictPhoneValidators: Record<PhoneNumberKind, (value: string) => boolean>
   tollFree: (value) =>
     /^0120(-?)\d{3}\1\d{3}$/.test(value) || /^0800(-?)\d{3}\1\d{4}$/.test(value),
 }
-const defaultPhoneNumberKinds: readonly PhoneNumberKind[] = ["mobile", "ip", "tollFree"]
+// Unhyphenated 0800 numbers can match both domestic formats. Prefer the longer prefix.
+const defaultPhoneNumberKinds: readonly PhoneNumberKind[] = ["tollFree", "mobile", "ip"]
+const domesticPhoneNumberKinds: readonly PhoneNumberKind[] = [...defaultPhoneNumberKinds, "landline"]
+const internationalPhoneNumberKinds: readonly PhoneNumberKind[] = ["mobile", "landline"]
+
+function toDomesticPhoneNumber(value: string): string | undefined {
+  // Require the same separator after +81 and between the national groups.
+  const match = /^\+81(-?)([1-9]\d{0,3})\1(\d{1,4})\1(\d{4})$/.exec(value)
+  if (!match) return undefined
+
+  const [, separator, area, exchange, subscriber] = match
+  return ["0" + area, exchange, subscriber].join(separator)
+}
+
+export function validateStrictPhoneNumberJP(
+  value: string,
+  { kinds = defaultPhoneNumberKinds, format = "domestic" }: StrictPhoneNumberOptions = {},
+): StrictPhoneNumberResult {
+  if (value === "") return { ok: false, reason: "empty" }
+
+  const inputFormat = value.startsWith("+") ? "international" : "domestic"
+  const domesticNumber = inputFormat === "international" ? toDomesticPhoneNumber(value) : value
+  if (domesticNumber === undefined) return { ok: false, reason: "invalid_format" }
+
+  const possibleKinds =
+    inputFormat === "international" ? internationalPhoneNumberKinds : domesticPhoneNumberKinds
+  const matchingKinds = possibleKinds.filter((kind) => strictPhoneValidators[kind](domesticNumber))
+  if (matchingKinds.length === 0) return { ok: false, reason: "invalid_format" }
+
+  const kind = matchingKinds.find((candidate) => kinds.includes(candidate))
+  if (kind === undefined) return { ok: false, reason: "kind_not_allowed" }
+  if (format !== "either" && format !== inputFormat) return { ok: false, reason: "format_not_allowed" }
+
+  return { ok: true, kind, format: inputFormat }
+}
 
 export function isStrictPhoneNumberJP(
   value: string,
-  { kinds = defaultPhoneNumberKinds, format = "domestic" }: {
-    kinds?: readonly PhoneNumberKind[]
-    format?: PhoneNumberFormat
-  } = {},
+  options: StrictPhoneNumberOptions = {},
 ): boolean {
-  if (format !== "domestic" && value.startsWith("+")) {
-    // Require the same separator after +81 and between the national groups.
-    const match = /^\+81(-?)([1-9]\d{0,3})\1(\d{1,4})\1(\d{4})$/.exec(value)
-    if (!match) return false
-
-    const [, separator, area, exchange, subscriber] = match
-    const domesticNumber = ["0" + area, exchange, subscriber].join(separator)
-    return kinds.some((kind) =>
-      (kind === "landline" || kind === "mobile") && strictPhoneValidators[kind](domesticNumber),
-    )
-  }
-
-  return format !== "international" && kinds.some((kind) => strictPhoneValidators[kind](value))
+  return validateStrictPhoneNumberJP(value, options).ok
 }
 
 export function isKatakana(value: string): boolean {
