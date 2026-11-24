@@ -25,6 +25,7 @@ export function isLandlinePhoneJP(value: string): boolean {
 }
 
 export type PhoneNumberKind = "landline" | "mobile" | "ip" | "tollFree"
+export type PhoneNumberFormat = "domestic" | "international" | "either"
 
 const strictPhoneValidators: Record<PhoneNumberKind, (value: string) => boolean> = {
   landline: isLandlinePhoneJP,
@@ -37,9 +38,24 @@ const defaultPhoneNumberKinds: readonly PhoneNumberKind[] = ["mobile", "ip", "to
 
 export function isStrictPhoneNumberJP(
   value: string,
-  { kinds = defaultPhoneNumberKinds }: { kinds?: readonly PhoneNumberKind[] } = {},
+  { kinds = defaultPhoneNumberKinds, format = "domestic" }: {
+    kinds?: readonly PhoneNumberKind[]
+    format?: PhoneNumberFormat
+  } = {},
 ): boolean {
-  return kinds.some((kind) => strictPhoneValidators[kind](value))
+  if (format !== "domestic" && value.startsWith("+")) {
+    // Require the same separator after +81 and between the national groups.
+    const match = /^\+81(-?)([1-9]\d{0,3})\1(\d{1,4})\1(\d{4})$/.exec(value)
+    if (!match) return false
+
+    const [, separator, area, exchange, subscriber] = match
+    const domesticNumber = ["0" + area, exchange, subscriber].join(separator)
+    return kinds.some((kind) =>
+      (kind === "landline" || kind === "mobile") && strictPhoneValidators[kind](domesticNumber),
+    )
+  }
+
+  return format !== "international" && kinds.some((kind) => strictPhoneValidators[kind](value))
 }
 
 export function isKatakana(value: string): boolean {

@@ -26,8 +26,17 @@ const strictPhoneValidators = {
     tollFree: (value) => /^0120(-?)\d{3}\1\d{3}$/.test(value) || /^0800(-?)\d{3}\1\d{4}$/.test(value),
 };
 const defaultPhoneNumberKinds = ["mobile", "ip", "tollFree"];
-export function isStrictPhoneNumberJP(value, { kinds = defaultPhoneNumberKinds } = {}) {
-    return kinds.some((kind) => strictPhoneValidators[kind](value));
+export function isStrictPhoneNumberJP(value, { kinds = defaultPhoneNumberKinds, format = "domestic" } = {}) {
+    if (format !== "domestic" && value.startsWith("+")) {
+        // Require the same separator after +81 and between the national groups.
+        const match = /^\+81(-?)([1-9]\d{0,3})\1(\d{1,4})\1(\d{4})$/.exec(value);
+        if (!match)
+            return false;
+        const [, separator, area, exchange, subscriber] = match;
+        const domesticNumber = ["0" + area, exchange, subscriber].join(separator);
+        return kinds.some((kind) => (kind === "landline" || kind === "mobile") && strictPhoneValidators[kind](domesticNumber));
+    }
+    return format !== "international" && kinds.some((kind) => strictPhoneValidators[kind](value));
 }
 export function isKatakana(value) {
     return /^[ァ-ヶー・\s　]+$/.test(value);

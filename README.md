@@ -5,7 +5,7 @@ Tiny TypeScript validators for Japanese form inputs.
 - 郵便番号
 - 携帯電話番号
 - 日本の電話番号っぽい形式
-- 固定電話・携帯電話・IP電話・フリーダイヤルの厳密な形式
+- 固定電話・携帯電話・IP電話・フリーダイヤルの厳密な形式（固定電話と携帯電話は `+81` 表記にも対応）
 - 全角カタカナ
 - 氏名欄向けのフリガナ
 - 表示可能な半角 ASCII の有無
@@ -85,7 +85,7 @@ isLandlinePhoneJP("031-234-5678") // false
 
 ### 厳密な電話番号判定 `isStrictPhoneNumberJP`
 
-第2引数に `{ kinds: [...] }` を渡すと、下表のうち選んだ種類のいずれかに合う入力に `true` を返します。配列が空なら `false` です。種類を省略した場合は、`0.2.0` と同じく携帯電話・IP電話・フリーダイヤルを受け付けます。ハイフンの使い方は固定電話と同じです。
+第2引数の `kinds` で、下表から受け付ける種類を指定できます。配列が空なら `false` です。種類を省略した場合は、携帯電話・IP電話・フリーダイヤルを受け付けます。
 
 | `PhoneNumberKind` | 対応する形式 |
 | --- | --- |
@@ -103,6 +103,25 @@ isStrictPhoneNumberJP("03-1234-5678")  // false
 const options = { kinds: ["landline", "mobile"] } as const
 isStrictPhoneNumberJP("03-1234-5678", options)  // true
 isStrictPhoneNumberJP("050-1234-5678", options) // false
+```
+
+`format` で、国内表記と `+81` 表記のどちらを受け付けるか指定できます。
+
+| `PhoneNumberFormat` | 受け付ける表記 |
+| --- | --- |
+| `domestic`（既定値） | 国内表記。各番号の区切り位置にハイフンを両方入れるか、両方を省略できます。 |
+| `international` | 固定電話・携帯電話の `+81` 表記。 |
+| `either` | `kinds` で選んだ種類について、対応するどちらの表記も受け付けます。 |
+
+`+81` 表記では国内用の先頭の `0` を外します。ハイフンは国番号の直後と番号の区切り位置の3か所すべてに入れるか、すべて省略できます。IP電話とフリーダイヤルは国内表記に対応しています。
+
+```ts
+const options = { kinds: ["landline", "mobile"], format: "either" } as const
+isStrictPhoneNumberJP("03-1234-5678", options)     // true
+isStrictPhoneNumberJP("+81-3-1234-5678", options)  // true
+isStrictPhoneNumberJP("+819012345678", options)    // true
+isStrictPhoneNumberJP("+81-03-1234-5678", options) // false
+isStrictPhoneNumberJP("+813-1234-5678", options)   // false
 ```
 
 ### `isKatakana(value: string): boolean`

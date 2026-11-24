@@ -90,6 +90,52 @@ describe("isStrictPhoneNumberJP", () => {
     expect(isStrictPhoneNumberJP("0312345678", {})).toBe(false)
     expect(isStrictPhoneNumberJP("06012345678")).toBe(false)
   })
+
+  it.each([
+    ["03-1234-5678", true, false, true],
+    ["0312345678", true, false, true],
+    ["090-1234-5678", true, false, true],
+    ["+81312345678", false, true, true],
+    ["+81-3-1234-5678", false, true, true],
+    ["+81-11-234-5678", false, true, true],
+    ["+81-4998-2-1234", false, true, true],
+    ["+819012345678", false, true, true],
+    ["+81-90-1234-5678", false, true, true],
+  ])("applies the selected format to %s", (value, domestic, international, either) => {
+    const kinds = ["landline", "mobile"] as const
+    expect(isStrictPhoneNumberJP(value, { kinds, format: "domestic" })).toBe(domestic)
+    expect(isStrictPhoneNumberJP(value, { kinds, format: "international" })).toBe(international)
+    expect(isStrictPhoneNumberJP(value, { kinds, format: "either" })).toBe(either)
+  })
+
+  it.each([
+    "+81-03-1234-5678", "+8109012345678", "+813-1234-5678", "+81-9012345678",
+    "+81-90-12345678", "+81 (3) 1234-5678", "＋８１３１２３４５６７８",
+    "+82-3-1234-5678", "0081312345678", "+81-31-234-5678", "+81-3-1234-567",
+    "+81-90-1234-56789", "+81-3-1234-5678\n",
+  ])("rejects out-of-format input %j", (value) => {
+    expect(isStrictPhoneNumberJP(value, { kinds: ["landline", "mobile"], format: "either" })).toBe(false)
+  })
+
+  it("applies the selected kinds to +81 inputs", () => {
+    const format = "international"
+    expect(isStrictPhoneNumberJP("+819012345678", { format })).toBe(true)
+    expect(isStrictPhoneNumberJP("+81312345678", { format })).toBe(false)
+    expect(isStrictPhoneNumberJP("+81312345678", { kinds: ["landline"], format })).toBe(true)
+    expect(isStrictPhoneNumberJP("+819012345678", { kinds: ["landline"], format })).toBe(false)
+    expect(isStrictPhoneNumberJP("+819012345678", { kinds: [], format })).toBe(false)
+    expect(isStrictPhoneNumberJP("+819012345678")).toBe(false)
+  })
+
+  it("accepts IP and toll-free numbers only in domestic notation", () => {
+    const kinds = ["ip", "tollFree"] as const
+    expect(isStrictPhoneNumberJP("050-1234-5678", { kinds, format: "either" })).toBe(true)
+    expect(isStrictPhoneNumberJP("0120-123-456", { kinds, format: "either" })).toBe(true)
+    expect(isStrictPhoneNumberJP("0800-123-4567", { kinds, format: "international" })).toBe(false)
+    expect(isStrictPhoneNumberJP("+81-50-1234-5678", { kinds, format: "either" })).toBe(false)
+    expect(isStrictPhoneNumberJP("+81120123456", { kinds, format: "either" })).toBe(false)
+    expect(isStrictPhoneNumberJP("+818001234567", { kinds, format: "either" })).toBe(false)
+  })
 })
 
 describe("isLandlinePhoneJP", () => {
