@@ -177,7 +177,7 @@ isMobilePhoneJP("090-1234-5678")
                     placeholder="例: 150-0001, 090-1234-5678, タナカ"
                   />
                   <div class="form-text mt-2">
-                    このデモはサイト内の簡易実装で動いています。実際の利用では npm/CDN から読み込んでください。
+                    配布版と同じ判定関数を使っています。
                   </div>
                 </div>
               </div>
@@ -221,7 +221,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v0.1 は5つの関数だけです。</p>
+              <p class="muted mb-0">v0.2.0 の判定関数</p>
             </div>
           </div>
 
@@ -256,6 +256,15 @@ isMobilePhoneJP("090-1234-5678")
             <div class="col-md-6 col-lg-4">
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
+                  <h3 class="h5 fw-bold">isStrictPhoneNumberJP</h3>
+                  <p class="muted">携帯電話、IP電話、フリーダイヤルの桁数と区切りを確認します。</p>
+                  <code>090-1234-5678</code> / <code>0120-123-456</code>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
                   <h3 class="h5 fw-bold">isKatakana</h3>
                   <p class="muted">全角カタカナ、長音、中黒、空白を許可します。</p>
                   <code>タナカ タロウ</code>
@@ -265,8 +274,17 @@ isMobilePhoneJP("090-1234-5678")
             <div class="col-md-6 col-lg-4">
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
+                  <h3 class="h5 fw-bold">isFurigana</h3>
+                  <p class="muted">全角カタカナを1文字以上含む氏名のフリガナを判定します。</p>
+                  <code>ジョー・ヤマダ</code>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
                   <h3 class="h5 fw-bold">isZenkaku</h3>
-                  <p class="muted">半角ASCIIを含まない文字列か判定します。</p>
+                  <p class="muted">空文字や表示可能な半角ASCIIを弾きます。半角カタカナも通ります。</p>
                   <code>山田太郎</code>
                 </div>
               </div>
@@ -296,11 +314,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@0.1.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@0.2.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@0.1.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@0.2.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -308,7 +326,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.1.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.2.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -324,19 +342,23 @@ isMobilePhoneJP("090-1234-5678")
             <div class="col-lg-5">
               <h2 class="fw-bold">Works with normalize-ja-input</h2>
               <p class="muted mb-0">
-                `ja-form-validators` は入力を正規化しません。全角数字やハイフン表記ゆれを整えたい場合は、先に `normalize-ja-input` を通してください。
+                全角数字やハイフン表記のゆれを受け付けるには、判定前に <code>normalize-ja-input</code> で入力を整えます。
               </p>
             </div>
             <div class="col-lg-7">
               <div class="code-block">
 <pre class="mb-0"><code>import { normalizeJaInput } from "normalize-ja-input"
-import { isMobilePhoneJP } from "ja-form-validators"
+import { isStrictPhoneNumberJP } from "ja-form-validators"
 
 const value = normalizeJaInput("０９０ー１２３４ー５６７８")
 
-isMobilePhoneJP(value)
+isStrictPhoneNumberJP(value)
 // true</code></pre>
               </div>
+              <button id="normalizeExample" class="btn btn-outline-primary mt-3" type="button">
+                正規化して判定する
+              </button>
+              <p id="normalizeResult" class="mt-2 mb-0" role="status"></p>
             </div>
           </div>
         </div>
@@ -352,32 +374,24 @@ isMobilePhoneJP(value)
     </footer>
 
     <script src="https://unpkg.com/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
-    <script>
-      function isPostalCodeJP(value) {
-        return /^\d{3}-?\d{4}$/.test(value)
-      }
-
-      function isMobilePhoneJP(value) {
-        return /^(070|080|090)-?\d{4}-?\d{4}$/.test(value)
-      }
-
-      function isPhoneNumberJP(value) {
-        return /^(0\d{1,4}-?\d{1,4}-?\d{4}|0\d{9,10})$/.test(value)
-      }
-
-      function isKatakana(value) {
-        return /^[ァ-ヶー・\s　]+$/.test(value)
-      }
-
-      function isZenkaku(value) {
-        return value.length > 0 && !/[ -~]/.test(value)
-      }
+    <script type="module">
+      import {
+        isFurigana,
+        isKatakana,
+        isMobilePhoneJP,
+        isPhoneNumberJP,
+        isPostalCodeJP,
+        isStrictPhoneNumberJP,
+        isZenkaku,
+      } from "./validators.js"
 
       const validators = [
         ["isPostalCodeJP", isPostalCodeJP],
         ["isMobilePhoneJP", isMobilePhoneJP],
         ["isPhoneNumberJP", isPhoneNumberJP],
+        ["isStrictPhoneNumberJP", isStrictPhoneNumberJP],
         ["isKatakana", isKatakana],
+        ["isFurigana", isFurigana],
         ["isZenkaku", isZenkaku],
       ]
 
@@ -401,6 +415,26 @@ isMobilePhoneJP(value)
 
       input.addEventListener("input", renderResults)
       renderResults()
+
+      const normalizeExample = document.getElementById("normalizeExample")
+      const normalizeResult = document.getElementById("normalizeResult")
+
+      normalizeExample.addEventListener("click", async () => {
+        normalizeExample.disabled = true
+        normalizeResult.textContent = "正規化ライブラリを読み込んでいます。"
+        try {
+          const { normalizeJaInput } = await import("https://esm.sh/normalize-ja-input")
+          const sample = "０９０ー１２３４ー５６７８"
+          const normalized = normalizeJaInput(sample)
+          normalizeResult.textContent =
+            `正規化前 ${sample} → ${isStrictPhoneNumberJP(sample)} ／ ` +
+            `正規化後 ${normalized} → ${isStrictPhoneNumberJP(normalized)}`
+        } catch {
+          normalizeResult.textContent = "正規化ライブラリを読み込めませんでした。"
+        } finally {
+          normalizeExample.disabled = false
+        }
+      })
 
       document.querySelectorAll("[data-copy]").forEach((button) => {
         button.addEventListener("click", async () => {
