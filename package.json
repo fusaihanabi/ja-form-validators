@@ -1,6 +1,6 @@
 {
   "name": "ja-form-validators",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Tiny TypeScript validators for Japanese form inputs.",
   "type": "module",
   "exports": {
@@ -12,7 +12,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "docs/LICENSE-libphonenumber.txt"
   ],
   "scripts": {
     "build": "tsc && node scripts/copy-demo.mjs",
@@ -29,7 +30,7 @@
     "phone-number",
     "typescript"
   ],
-  "license": "MIT",
+  "license": "MIT AND Apache-2.0",
   "devDependencies": {
     "typescript": "^5.0.0",
     "vitest": "^1.0.0"

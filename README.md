@@ -5,7 +5,7 @@ Tiny TypeScript validators for Japanese form inputs.
 - 郵便番号
 - 携帯電話番号
 - 日本の電話番号っぽい形式
-- 携帯電話・IP電話・フリーダイヤルの厳密な形式
+- 固定電話・携帯電話・IP電話・フリーダイヤルの厳密な形式
 - 全角カタカナ
 - 氏名欄向けのフリガナ
 - 表示可能な半角 ASCII の有無
@@ -23,6 +23,7 @@ import {
   isPostalCodeJP,
   isMobilePhoneJP,
   isPhoneNumberJP,
+  isLandlinePhoneJP,
   isStrictPhoneNumberJP,
   isKatakana,
   isFurigana,
@@ -72,21 +73,36 @@ isPhoneNumberJP("03-1234-5678")  // true
 isPhoneNumberJP("090-1234-5678") // true
 ```
 
-### `isStrictPhoneNumberJP(value: string): boolean`
+### `isLandlinePhoneJP(value: string): boolean`
 
-国内向けの半角数字で、下表の番号形式を判定します。ハイフンは2か所とも入れるか、両方を省略できます。固定電話を含む入力には `isPhoneNumberJP` の簡易判定を使えます。
+国内固定電話の半角数字10桁を対象に、同梱データに基づいて番号の先頭部分と区切りを判定します。ハイフンは市外局番に合った位置に2か所とも入れるか、両方を省略できます。判定対象は番号の形式です。
 
-| 種類 | 対応する形式 |
+```ts
+isLandlinePhoneJP("03-1234-5678") // true
+isLandlinePhoneJP("0312345678")   // true
+isLandlinePhoneJP("031-234-5678") // false
+```
+
+### 厳密な電話番号判定 `isStrictPhoneNumberJP`
+
+第2引数に `{ kinds: [...] }` を渡すと、下表のうち選んだ種類のいずれかに合う入力に `true` を返します。配列が空なら `false` です。種類を省略した場合は、`0.2.0` と同じく携帯電話・IP電話・フリーダイヤルを受け付けます。ハイフンの使い方は固定電話と同じです。
+
+| `PhoneNumberKind` | 対応する形式 |
 | --- | --- |
-| 携帯電話 | `070-1234-5678`、`080-1234-5678`、`090-1234-5678` |
-| IP電話 | `050-1234-5678` |
-| フリーダイヤル | `0120-123-456`、`0800-123-4567` |
+| `landline`（固定電話） | `03-1234-5678`、`011-234-5678` など |
+| `mobile`（携帯電話） | `070-1234-5678`、`080-1234-5678`、`090-1234-5678` |
+| `ip`（IP電話） | `050-1234-5678` |
+| `tollFree`（フリーダイヤル） | `0120-123-456`、`0800-123-4567` |
 
 ```ts
 isStrictPhoneNumberJP("090-1234-5678") // true
 isStrictPhoneNumberJP("09012345678")   // true
 isStrictPhoneNumberJP("090-12345678")  // false
 isStrictPhoneNumberJP("03-1234-5678")  // false
+
+const options = { kinds: ["landline", "mobile"] } as const
+isStrictPhoneNumberJP("03-1234-5678", options)  // true
+isStrictPhoneNumberJP("050-1234-5678", options) // false
 ```
 
 ### `isKatakana(value: string): boolean`
@@ -151,8 +167,20 @@ isStrictPhoneNumberJP(value)
 - GitHub → `https://github.com/fusaihanabi/ja-form-validators`
 - Official → `https://dl.fusai-hanabi.com`
 
-`npm run build` は配布用の JavaScript と型定義を生成し、デモが読み込む `docs/validators.js` を更新します。
+`npm run build` は配布用の JavaScript と型定義を生成し、デモが読み込む `docs/validators.js` と `docs/landline-metadata.js` を更新します。
 ローカルでデモを確認する場合は、`docs/` を静的ファイルサーバーで配信してください。
+
+## 固定電話データの更新
+
+固定電話の判定データは、[libphonenumber v9.0.43 の日本向けメタデータ](https://github.com/google/libphonenumber/blob/v9.0.43/resources/PhoneNumberMetadata.xml)（2026年11月4日版）から、固定電話の番号パターンと国内の区切り規則を抽出したものです。判定は同梱データだけで動作します。
+
+更新する場合は、上流の対象タグから `PhoneNumberMetadata.xml` を取得し、タグ名とローカルの XML ファイルを指定して再生成します。その後、テストとビルドを実行し、生成データ、デモ用ファイル、この節の出典と版を更新します。
+
+```sh
+node scripts/update-landline-metadata.mjs v9.0.43 ./PhoneNumberMetadata.xml
+npm test
+npm run build
+```
 
 ---
 
@@ -165,4 +193,4 @@ It does not:
 
 ## License
 
-MIT
+ライブラリ本体は [MIT](LICENSE) です。同梱する固定電話データには [Apache License 2.0](docs/LICENSE-libphonenumber.txt) が適用されます。

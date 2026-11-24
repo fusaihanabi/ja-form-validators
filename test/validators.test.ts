@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   isFurigana,
   isKatakana,
+  isLandlinePhoneJP,
   isMobilePhoneJP,
   isPhoneNumberJP,
   isPostalCodeJP,
@@ -68,6 +69,45 @@ describe("isStrictPhoneNumberJP", () => {
     "01-2-3456", "03-1234-5678", "０９０-１２３４-５６７８", "090-1234-5678\n",
   ])("rejects %j", (value) => {
     expect(isStrictPhoneNumberJP(value)).toBe(false)
+  })
+
+  it("accepts only the selected kinds", () => {
+    const kinds = ["landline", "mobile"] as const
+    expect(isStrictPhoneNumberJP("03-1234-5678", { kinds })).toBe(true)
+    expect(isStrictPhoneNumberJP("090-1234-5678", { kinds })).toBe(true)
+    expect(isStrictPhoneNumberJP("050-1234-5678", { kinds })).toBe(false)
+    expect(isStrictPhoneNumberJP("0120-123-456", { kinds })).toBe(false)
+    expect(isStrictPhoneNumberJP("05012345678", { kinds: ["ip"] })).toBe(true)
+    expect(isStrictPhoneNumberJP("08001234567", { kinds: ["tollFree"] })).toBe(true)
+    expect(isStrictPhoneNumberJP("09012345678", { kinds: ["landline"] })).toBe(false)
+    expect(isStrictPhoneNumberJP("09012345678", { kinds: [] })).toBe(false)
+  })
+
+  it("retains the default kinds for empty options", () => {
+    expect(isStrictPhoneNumberJP("09012345678", {})).toBe(true)
+    expect(isStrictPhoneNumberJP("05012345678", {})).toBe(true)
+    expect(isStrictPhoneNumberJP("0120123456", {})).toBe(true)
+    expect(isStrictPhoneNumberJP("0312345678", {})).toBe(false)
+    expect(isStrictPhoneNumberJP("06012345678")).toBe(false)
+  })
+})
+
+describe("isLandlinePhoneJP", () => {
+  it.each([
+    "03-1234-5678", "011-234-5678", "0467-23-4567", "04998-2-1234",
+    "04-2920-1234", "042-311-1234",
+  ])("accepts %s with or without both hyphens", (value) => {
+    expect(isLandlinePhoneJP(value)).toBe(true)
+    expect(isLandlinePhoneJP(value.replace(/-/g, ""))).toBe(true)
+  })
+
+  it.each([
+    "", "031-234-5678", "042-920-1234", "04-2311-1234",
+    "03-12345678", "031234-5678", "03-1234-567", "03-1234-56789",
+    "0101234567", "0990-12-3456", "0120-123-456", "050-1234-5678", "090-1234-5678",
+    "+81-3-1234-5678", "０３-１２３４-５６７８", "03-1234-5678\n",
+  ])("rejects %j", (value) => {
+    expect(isLandlinePhoneJP(value)).toBe(false)
   })
 })
 

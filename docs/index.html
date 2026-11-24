@@ -6,7 +6,7 @@
     <title>ja-form-validators - Tiny validators for Japanese form inputs</title>
     <meta
       name="description"
-      content="Tiny TypeScript validators for Japanese form inputs. Postal code, mobile phone number, phone number, katakana, and zenkaku validators."
+      content="Tiny TypeScript validators for Japanese form inputs, including landline and mobile phone numbers, postal codes, and furigana."
     />
     <link
       href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -174,10 +174,10 @@ isMobilePhoneJP("090-1234-5678")
                     id="demoInput"
                     class="form-control form-control-lg"
                     value="090-1234-5678"
-                    placeholder="例: 150-0001, 090-1234-5678, タナカ"
+                    placeholder="例: 03-1234-5678, 150-0001, タナカ"
                   />
                   <div class="form-text mt-2">
-                    配布版と同じ判定関数を使っています。
+                    「問い合わせ先（固定・携帯）」では、固定電話と携帯電話だけを受け付けます。
                   </div>
                 </div>
               </div>
@@ -221,7 +221,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v0.2.0 の判定関数</p>
+              <p class="muted mb-0">v0.3.0 の判定関数</p>
             </div>
           </div>
 
@@ -257,8 +257,17 @@ isMobilePhoneJP("090-1234-5678")
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                   <h3 class="h5 fw-bold">isStrictPhoneNumberJP</h3>
-                  <p class="muted">携帯電話、IP電話、フリーダイヤルの桁数と区切りを確認します。</p>
-                  <code>090-1234-5678</code> / <code>0120-123-456</code>
+                  <p class="muted"><code>kinds</code> で受け付ける電話番号の種類を選べます。</p>
+                  <code>{ kinds: ["landline", "mobile"] }</code>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                  <h3 class="h5 fw-bold">isLandlinePhoneJP</h3>
+                  <p class="muted">固定電話の番号と市外局番に合った区切りを確認します。</p>
+                  <code>03-1234-5678</code> / <code>0312345678</code>
                 </div>
               </div>
             </div>
@@ -314,11 +323,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@0.2.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@0.3.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@0.2.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@0.3.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -326,7 +335,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.2.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.3.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -367,7 +376,7 @@ isStrictPhoneNumberJP(value)
 
     <footer class="py-4 border-top bg-white">
       <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
-        <span class="muted">MIT Licensed.</span>
+        <span class="muted">本体 MIT ／ <a href="./LICENSE-libphonenumber.txt">固定電話データ Apache 2.0</a></span>
         <span class="muted"><a href="https://dl.fusai-hanabi.com/">dl.fusai-hanabi.com</a></span>
         <span class="muted">Built for small Japanese form validation.</span>
       </div>
@@ -378,6 +387,7 @@ isStrictPhoneNumberJP(value)
       import {
         isFurigana,
         isKatakana,
+        isLandlinePhoneJP,
         isMobilePhoneJP,
         isPhoneNumberJP,
         isPostalCodeJP,
@@ -389,7 +399,10 @@ isStrictPhoneNumberJP(value)
         ["isPostalCodeJP", isPostalCodeJP],
         ["isMobilePhoneJP", isMobilePhoneJP],
         ["isPhoneNumberJP", isPhoneNumberJP],
+        ["isLandlinePhoneJP", isLandlinePhoneJP],
         ["isStrictPhoneNumberJP", isStrictPhoneNumberJP],
+        ["問い合わせ先（固定・携帯）", (value) =>
+          isStrictPhoneNumberJP(value, { kinds: ["landline", "mobile"] })],
         ["isKatakana", isKatakana],
         ["isFurigana", isFurigana],
         ["isZenkaku", isZenkaku],
