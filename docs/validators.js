@@ -59,7 +59,7 @@ function matchingPhoneNumberKinds(domesticNumber, possibleKinds, kindMatching) {
     }
     return possibleKinds.filter((kind) => strictPhoneValidators[kind](domesticNumber));
 }
-export function validateStrictPhoneNumberJP(value, { kinds = defaultPhoneNumberKinds, format = "domestic", kindMatching = "compatible", } = {}) {
+export function validateStrictPhoneNumberJP(value, { kinds = defaultPhoneNumberKinds, format = "domestic", kindMatching = "specific", } = {}) {
     if (value === "")
         return { ok: false, reason: "empty" };
     const inputFormat = value.startsWith("+") ? "international" : "domestic";

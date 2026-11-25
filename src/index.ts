@@ -105,7 +105,7 @@ export function validateStrictPhoneNumberJP(
   {
     kinds = defaultPhoneNumberKinds,
     format = "domestic",
-    kindMatching = "compatible",
+    kindMatching = "specific",
   }: StrictPhoneNumberOptions = {},
 ): StrictPhoneNumberResult {
   if (value === "") return { ok: false, reason: "empty" }

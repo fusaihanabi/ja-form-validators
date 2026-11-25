@@ -1,6 +1,6 @@
 {
   "name": "ja-form-validators",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "Tiny TypeScript validators for Japanese form inputs.",
   "type": "module",
   "exports": {
@@ -12,6 +12,7 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE",
     "docs/LICENSE-libphonenumber.txt"
   ],

@@ -16,6 +16,8 @@ Tiny TypeScript validators for Japanese form inputs.
 npm install ja-form-validators
 ```
 
+`0.9.0` から更新する場合は、電話番号判定の既定値変更を確認してください。 [変更履歴](CHANGELOG.md)
+
 ## Usage
 
 ```ts
@@ -242,28 +244,34 @@ validateStrictPhoneNumberJP("+81-3-1234-5678", options)
 
 | `PhoneNumberKindMatching` | 判定方法 |
 | --- | --- |
-| `compatible`（既定値） | 入力された表記に合う種類のうち、`kinds` で許可したものを選びます。`0.8.0` と同じ判定です。 |
-| `specific` | ハイフンを除いた番号から種類を決め、その種類で使える区切りと表記を検査してから、`kinds` と `format` を適用します。 |
+| `specific`（`1.0.0` の既定値） | ハイフンを除いた番号から種類を決め、その種類で使える区切りと表記を検査してから、`kinds` と `format` を適用します。 |
+| `compatible` | 入力された表記に合う種類のうち、`kinds` で許可したものを選びます。`0.9.0` の既定の判定です。 |
 
 `08001234567` は、ハイフンを除いた状態で携帯電話とフリーダイヤルの両方に当てはまります。`specific` では、`kinds` の指定順にかかわらず、先に `tollFree` に分類します。
 
 ```ts
 validateStrictPhoneNumberJP("08001234567", { kinds: ["mobile"] })
-// { ok: true, kind: "mobile", format: "domestic" }
-
-validateStrictPhoneNumberJP("08001234567", { kinds: ["mobile"], kindMatching: "specific" })
 // { ok: false, reason: "kind_not_allowed" }
 ```
 
-`format: "either"` と `kindMatching: "specific"` の例です。
+#### `0.9.0` から `1.0.0` への移行
 
-| 入力 | 許可する種類 | 結果 |
-| --- | --- | --- |
-| `08001234567` | 携帯・フリーダイヤル | `tollFree` として成功 |
-| `0800-123-4567` | フリーダイヤル | `tollFree` として成功 |
-| `080-0123-4567` | 携帯・フリーダイヤル | `invalid_format`。ハイフンを入れる場合は `0800-123-4567` の形 |
-| `+818001234567` | 携帯・フリーダイヤル | `invalid_format`。フリーダイヤルは国内表記に対応 |
-| `080-1234-5678` | 携帯 | `mobile` として成功 |
+`0.9.0` の既定の挙動を使う場合は、既存の設定に `kindMatching: "compatible"` を追加します。どちらの関数でも指定できます。
+
+```ts
+isStrictPhoneNumberJP("08001234567", { kinds: ["mobile"], kindMatching: "compatible" })
+// true
+```
+
+| 入力 | 許可する種類と表記 | `1.0.0` の既定値 | `compatible` を指定 |
+| --- | --- | --- | --- |
+| `08001234567` | 携帯、国内表記 | `kind_not_allowed` | `mobile` として成功 |
+| `080-0123-4567` | 携帯、国内表記 | `invalid_format` | `mobile` として成功 |
+| `+818001234567` | 携帯、`format: "either"` | `invalid_format` | `mobile` として成功 |
+| `080-1234-5678` | 携帯、国内表記 | `mobile` として成功 | `mobile` として成功 |
+| `0800-123-4567` | フリーダイヤル、国内表記 | `tollFree` として成功 | `tollFree` として成功 |
+
+`0800` で始まるフリーダイヤルにハイフンを入れる場合は `0800-123-4567` の形です。フリーダイヤルは国内表記に対応しています。
 
 ### `isKatakana(value: string): boolean`
 

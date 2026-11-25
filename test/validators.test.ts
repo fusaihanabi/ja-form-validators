@@ -183,7 +183,7 @@ describe("validateStrictPhoneNumberJP", () => {
     ["0800-123-4567", {}, "tollFree", "domestic"],
     ["08001234567", {}, "tollFree", "domestic"],
     ["08001234567", { kinds: ["tollFree", "mobile"] }, "tollFree", "domestic"],
-    ["08001234567", { kinds: ["mobile"] }, "mobile", "domestic"],
+    ["08001234567", { kinds: ["mobile"], kindMatching: "compatible" }, "mobile", "domestic"],
     ["+81-3-1234-5678", { kinds: ["landline"], format: "either" }, "landline", "international"],
     ["+819012345678", { format: "international" }, "mobile", "international"],
   ] as const)("reports the kind and notation of %s", (value, options, kind, format) => {
@@ -225,9 +225,12 @@ describe("phone number kind matching", () => {
     ["+818012345678", mobileOnly, "mobile", "international"],
     ["+81-3-1234-5678", { kinds: ["landline"], format: "either" }, "landline", "international"],
     ["050-1234-5678", { kinds: ["ip"] }, "ip", "domestic"],
-  ] as const)("classifies %s in specific mode", (value, options, kind, format) => {
+  ] as const)("classifies %s with default and explicit specific matching", (value, options, kind, format) => {
     const settings = { ...options, kindMatching: "specific" } as const
-    expect(validateStrictPhoneNumberJP(value, settings)).toEqual({ ok: true, kind, format })
+    const expected = { ok: true, kind, format }
+    expect(validateStrictPhoneNumberJP(value, options)).toEqual(expected)
+    expect(validateStrictPhoneNumberJP(value, settings)).toEqual(expected)
+    expect(isStrictPhoneNumberJP(value, options)).toBe(true)
     expect(isStrictPhoneNumberJP(value, settings)).toBe(true)
   })
 
@@ -244,19 +247,22 @@ describe("phone number kind matching", () => {
     ["+815012345678", { kinds: ["ip"], format: "either" }, "invalid_format"],
     ["08001234567", { kinds: ["mobile"], format: "international" }, "kind_not_allowed"],
     ["08001234567", { kinds: ["tollFree"], format: "international" }, "format_not_allowed"],
-  ] as const)("reports why %j was rejected in specific mode", (value, options, reason) => {
+  ] as const)("reports why %j was rejected with default and explicit specific matching", (value, options, reason) => {
     const settings = { ...options, kindMatching: "specific" } as const
-    expect(validateStrictPhoneNumberJP(value, settings)).toEqual({ ok: false, reason })
+    const expected = { ok: false, reason }
+    expect(validateStrictPhoneNumberJP(value, options)).toEqual(expected)
+    expect(validateStrictPhoneNumberJP(value, settings)).toEqual(expected)
+    expect(isStrictPhoneNumberJP(value, options)).toBe(false)
     expect(isStrictPhoneNumberJP(value, settings)).toBe(false)
   })
 
   it.each(["08001234567", "080-0123-4567", "+818001234567", "+81-80-0123-4567"])(
-    "retains the previous mobile match for %s by default",
+    "retains the previous mobile match for %s with compatible matching",
     (value) => {
-      const result = validateStrictPhoneNumberJP(value, mobileOnly)
+      const settings = { ...mobileOnly, kindMatching: "compatible" } as const
       const format = value.startsWith("+") ? "international" : "domestic"
-      expect(result).toEqual({ ok: true, kind: "mobile", format })
-      expect(validateStrictPhoneNumberJP(value, { ...mobileOnly, kindMatching: "compatible" })).toEqual(result)
+      expect(validateStrictPhoneNumberJP(value, settings)).toEqual({ ok: true, kind: "mobile", format })
+      expect(isStrictPhoneNumberJP(value, settings)).toBe(true)
     },
   )
 })

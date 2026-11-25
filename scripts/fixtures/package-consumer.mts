@@ -37,11 +37,14 @@ if (postalReason !== "invalid_length" || phoneReason !== "kind_not_allowed" || f
   throw new Error("Unexpected field validation reasons")
 }
 
-const kindMatching: PhoneNumberKindMatching = "specific"
-const tollFreeInMobileField = validateStrictPhoneNumberJP("08001234567", {
-  kinds: ["mobile"],
-  kindMatching,
-})
+const mobileOnly = { kinds: ["mobile"] } as const
+const tollFreeInMobileField = validateStrictPhoneNumberJP("08001234567", mobileOnly)
 if (tollFreeInMobileField.ok || tollFreeInMobileField.reason !== "kind_not_allowed") {
-  throw new Error("Expected specific matching to reject an 0800 number in a mobile field")
+  throw new Error("Expected the default matching to reject an 0800 number in a mobile field")
+}
+
+const kindMatching: PhoneNumberKindMatching = "compatible"
+const compatibleResult = validateStrictPhoneNumberJP("08001234567", { ...mobileOnly, kindMatching })
+if (!compatibleResult.ok || compatibleResult.kind !== "mobile") {
+  throw new Error("Expected compatible matching to retain the previous mobile match")
 }
