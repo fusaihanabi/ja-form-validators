@@ -29,6 +29,7 @@ import {
   isFurigana,
   isZenkaku,
   validateFurigana,
+  validatePostalCodeJP,
   validateStrictPhoneNumberJP,
 } from "ja-form-validators"
 
@@ -53,6 +54,28 @@ isPostalCodeJP("150-0001") // true
 isPostalCodeJP("1500001")  // true
 isPostalCodeJP("１５０-０００１") // false
 ```
+
+### 理由付きの郵便番号判定 `validatePostalCodeJP`
+
+`isPostalCodeJP` と同じ基準で、半角数字7桁の郵便番号を判定します。ハイフンを使う場合は3桁目の後に半角の `-` を1つ入れます。成功時は `{ ok: true }`、失敗時は `{ ok: false, reason }` を返します。戻り値の型は `PostalCodeResult`、理由コードの型は `PostalCodeFailureReason` です。
+
+```ts
+validatePostalCodeJP("150-0001")  // { ok: true }
+validatePostalCodeJP("1500001")   // { ok: true }
+validatePostalCodeJP("150-001")   // { ok: false, reason: "invalid_length" }
+validatePostalCodeJP("15--00001") // { ok: false, reason: "invalid_separator" }
+```
+
+上から順に判定し、最初に該当した理由を返します。
+
+| 理由コード | 条件 | 表示メッセージの例 |
+| --- | --- | --- |
+| `empty` | 空文字 | 郵便番号を入力してください。 |
+| `invalid_character` | 半角数字と半角ハイフン以外の文字を含む | 半角数字と半角ハイフンを使ってください。 |
+| `invalid_length` | ハイフンを除くと半角数字が7桁以外 | 数字を7桁入力してください。 |
+| `invalid_separator` | 半角数字は7桁だが、ハイフンの位置または個数が不正 | ハイフンを入れる場合は、3桁目の後に1つ入れてください。 |
+
+`isPostalCodeJP` は同じ判定結果の `ok` を返します。判定の対象は入力形式です。
 
 ### `isMobilePhoneJP(value: string): boolean`
 

@@ -9,6 +9,7 @@ import {
   isStrictPhoneNumberJP,
   isZenkaku,
   validateFurigana,
+  validatePostalCodeJP,
   validateStrictPhoneNumberJP,
 } from "../src/index.ts"
 
@@ -22,6 +23,38 @@ describe("isPostalCodeJP", () => {
     expect(isPostalCodeJP("150-000")).toBe(false)
     expect(isPostalCodeJP("１５０-０００１")).toBe(false)
     expect(isPostalCodeJP("abc-defg")).toBe(false)
+  })
+})
+
+describe("validatePostalCodeJP", () => {
+  it.each(["150-0001", "1500001", "060-0001"])("accepts %s", (value) => {
+    const result = validatePostalCodeJP(value)
+    expect(result).toEqual({ ok: true })
+    expect(isPostalCodeJP(value)).toBe(result.ok)
+  })
+
+  it.each([
+    ["", "empty"],
+    [" ", "invalid_character"],
+    ["１５０-０００１", "invalid_character"],
+    ["１５０-０１", "invalid_character"],
+    ["150−0001", "invalid_character"],
+    ["150-0001\n", "invalid_character"],
+    ["150x001", "invalid_character"],
+    ["-", "invalid_length"],
+    ["150001", "invalid_length"],
+    ["15000001", "invalid_length"],
+    ["15-001", "invalid_length"],
+    ["15--001", "invalid_length"],
+    ["15-00001", "invalid_separator"],
+    ["15--00001", "invalid_separator"],
+    ["150--0001", "invalid_separator"],
+    ["-1500001", "invalid_separator"],
+    ["1500001-", "invalid_separator"],
+  ] as const)("reports why %j was rejected", (value, reason) => {
+    const result = validatePostalCodeJP(value)
+    expect(result).toEqual({ ok: false, reason })
+    expect(isPostalCodeJP(value)).toBe(result.ok)
   })
 })
 

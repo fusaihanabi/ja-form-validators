@@ -1,6 +1,17 @@
 import { landlineAreaCodeRules, landlineNumberPattern } from "./landline-metadata.js";
+export function validatePostalCodeJP(value) {
+    if (value === "")
+        return { ok: false, reason: "empty" };
+    if (/[^0-9-]/.test(value))
+        return { ok: false, reason: "invalid_character" };
+    if (!/^(?:-*[0-9]){7}-*$/.test(value))
+        return { ok: false, reason: "invalid_length" };
+    if (!/^\d{3}-?\d{4}$/.test(value))
+        return { ok: false, reason: "invalid_separator" };
+    return { ok: true };
+}
 export function isPostalCodeJP(value) {
-    return /^\d{3}-?\d{4}$/.test(value);
+    return validatePostalCodeJP(value).ok;
 }
 export function isMobilePhoneJP(value) {
     return /^(070|080|090)-?\d{4}-?\d{4}$/.test(value);

@@ -230,6 +230,32 @@ isMobilePhoneJP("090-1234-5678")
                   <div id="demoResults" class="demo-result d-grid gap-2"></div>
                 </div>
               </div>
+              <div class="card border-0 shadow-sm rounded-4 mt-4">
+                <div class="card-body p-4">
+                  <label for="postalCodeInput" class="form-label fw-semibold">郵便番号</label>
+                  <input
+                    id="postalCodeInput"
+                    class="form-control"
+                    value="150-0001"
+                    aria-describedby="postalCodeFeedback"
+                  />
+                  <p id="postalCodeFeedback" class="mt-2 mb-0" role="status"></p>
+                  <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="150-0001">
+                      有効な例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="１５０-０００１">
+                      全角数字の例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="150-001">
+                      桁数不足の例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="15--00001">
+                      区切り違いの例
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -261,7 +287,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v0.6.0 の判定関数</p>
+              <p class="muted mb-0">v0.7.0 の判定関数</p>
             </div>
           </div>
 
@@ -272,6 +298,15 @@ isMobilePhoneJP("090-1234-5678")
                   <h3 class="h5 fw-bold">isPostalCodeJP</h3>
                   <p class="muted">日本の郵便番号を判定します。</p>
                   <code>150-0001</code> / <code>1500001</code>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                  <h3 class="h5 fw-bold">validatePostalCodeJP</h3>
+                  <p class="muted">郵便番号の文字、桁数、区切りを判定し、理由コードを返します。</p>
+                  <code>{ ok: false, reason: "invalid_separator" }</code>
                 </div>
               </div>
             </div>
@@ -381,11 +416,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@0.6.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@0.7.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@0.6.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@0.7.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -393,7 +428,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.6.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.7.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -452,6 +487,7 @@ isStrictPhoneNumberJP(value)
         isStrictPhoneNumberJP,
         isZenkaku,
         validateFurigana,
+        validatePostalCodeJP,
         validateStrictPhoneNumberJP,
       } from "./validators.js"
 
@@ -545,6 +581,33 @@ isStrictPhoneNumberJP(value)
           furiganaInput.value = button.dataset.furiganaExample
           renderFuriganaFeedback()
           furiganaInput.focus()
+        })
+      })
+
+      const postalCodeInput = document.getElementById("postalCodeInput")
+      const postalCodeFeedback = document.getElementById("postalCodeFeedback")
+      const postalCodeMessages = {
+        empty: "郵便番号を入力してください。",
+        invalid_character: "半角数字と半角ハイフンを使ってください。",
+        invalid_length: "数字を7桁入力してください。",
+        invalid_separator: "ハイフンを入れる場合は、3桁目の後に1つ入れてください。",
+      }
+
+      function renderPostalCodeFeedback() {
+        const result = validatePostalCodeJP(postalCodeInput.value)
+        postalCodeFeedback.textContent = result.ok
+          ? "この郵便番号の形式で入力できます。"
+          : postalCodeMessages[result.reason]
+      }
+
+      postalCodeInput.addEventListener("input", renderPostalCodeFeedback)
+      renderPostalCodeFeedback()
+
+      document.querySelectorAll("[data-postal-code-example]").forEach((button) => {
+        button.addEventListener("click", () => {
+          postalCodeInput.value = button.dataset.postalCodeExample
+          renderPostalCodeFeedback()
+          postalCodeInput.focus()
         })
       })
 
