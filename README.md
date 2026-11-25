@@ -236,7 +236,34 @@ validateStrictPhoneNumberJP("+81-3-1234-5678", options)
 
 成功結果の `format` は `"domestic"` または `"international"` です。`isStrictPhoneNumberJP` は同じ判定結果の `ok` を返します。
 
-ハイフンなしの `0800` で始まる入力は、形式上、携帯電話とフリーダイヤルの両方に当てはまる場合があります。両方を許可した場合は `tollFree` が返ります。
+### 番号の種類を先に確定する `kindMatching`
+
+`validateStrictPhoneNumberJP` と `isStrictPhoneNumberJP` の両方で、`StrictPhoneNumberOptions.kindMatching` に次の値を指定できます。
+
+| `PhoneNumberKindMatching` | 判定方法 |
+| --- | --- |
+| `compatible`（既定値） | 入力された表記に合う種類のうち、`kinds` で許可したものを選びます。`0.8.0` と同じ判定です。 |
+| `specific` | ハイフンを除いた番号から種類を決め、その種類で使える区切りと表記を検査してから、`kinds` と `format` を適用します。 |
+
+`08001234567` は、ハイフンを除いた状態で携帯電話とフリーダイヤルの両方に当てはまります。`specific` では、`kinds` の指定順にかかわらず、先に `tollFree` に分類します。
+
+```ts
+validateStrictPhoneNumberJP("08001234567", { kinds: ["mobile"] })
+// { ok: true, kind: "mobile", format: "domestic" }
+
+validateStrictPhoneNumberJP("08001234567", { kinds: ["mobile"], kindMatching: "specific" })
+// { ok: false, reason: "kind_not_allowed" }
+```
+
+`format: "either"` と `kindMatching: "specific"` の例です。
+
+| 入力 | 許可する種類 | 結果 |
+| --- | --- | --- |
+| `08001234567` | 携帯・フリーダイヤル | `tollFree` として成功 |
+| `0800-123-4567` | フリーダイヤル | `tollFree` として成功 |
+| `080-0123-4567` | 携帯・フリーダイヤル | `invalid_format`。ハイフンを入れる場合は `0800-123-4567` の形 |
+| `+818001234567` | 携帯・フリーダイヤル | `invalid_format`。フリーダイヤルは国内表記に対応 |
+| `080-1234-5678` | 携帯 | `mobile` として成功 |
 
 ### `isKatakana(value: string): boolean`
 

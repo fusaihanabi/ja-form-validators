@@ -44,10 +44,12 @@ export function isLandlinePhoneJP(value: string): boolean {
 
 export type PhoneNumberKind = "landline" | "mobile" | "ip" | "tollFree"
 export type PhoneNumberFormat = "domestic" | "international" | "either"
+export type PhoneNumberKindMatching = "compatible" | "specific"
 
 export interface StrictPhoneNumberOptions {
   kinds?: readonly PhoneNumberKind[]
   format?: PhoneNumberFormat
+  kindMatching?: PhoneNumberKindMatching
 }
 
 export type StrictPhoneNumberFailureReason =
@@ -81,9 +83,30 @@ function toDomesticPhoneNumber(value: string): string | undefined {
   return ["0" + area, exchange, subscriber].join(separator)
 }
 
+function matchingPhoneNumberKinds(
+  domesticNumber: string,
+  possibleKinds: readonly PhoneNumberKind[],
+  kindMatching: PhoneNumberKindMatching,
+): PhoneNumberKind[] {
+  if (kindMatching === "specific") {
+    const digits = domesticNumber.replace(/-/g, "")
+    const kind = domesticPhoneNumberKinds.find((candidate) => strictPhoneValidators[candidate](digits))
+    if (kind === undefined || !possibleKinds.includes(kind) || !strictPhoneValidators[kind](domesticNumber)) {
+      return []
+    }
+    return [kind]
+  }
+
+  return possibleKinds.filter((kind) => strictPhoneValidators[kind](domesticNumber))
+}
+
 export function validateStrictPhoneNumberJP(
   value: string,
-  { kinds = defaultPhoneNumberKinds, format = "domestic" }: StrictPhoneNumberOptions = {},
+  {
+    kinds = defaultPhoneNumberKinds,
+    format = "domestic",
+    kindMatching = "compatible",
+  }: StrictPhoneNumberOptions = {},
 ): StrictPhoneNumberResult {
   if (value === "") return { ok: false, reason: "empty" }
 
@@ -93,7 +116,7 @@ export function validateStrictPhoneNumberJP(
 
   const possibleKinds =
     inputFormat === "international" ? internationalPhoneNumberKinds : domesticPhoneNumberKinds
-  const matchingKinds = possibleKinds.filter((kind) => strictPhoneValidators[kind](domesticNumber))
+  const matchingKinds = matchingPhoneNumberKinds(domesticNumber, possibleKinds, kindMatching)
   if (matchingKinds.length === 0) return { ok: false, reason: "invalid_format" }
 
   const kind = matchingKinds.find((candidate) => kinds.includes(candidate))

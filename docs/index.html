@@ -185,12 +185,32 @@ isMobilePhoneJP("090-1234-5678")
                       <option value="international">+81 表記のみ</option>
                     </select>
                   </div>
+                  <div class="row g-2 mt-2">
+                    <div class="col-sm-6">
+                      <label for="contactKinds" class="form-label">受け付ける番号</label>
+                      <select id="contactKinds" class="form-select">
+                        <option value="landline-and-mobile">固定・携帯</option>
+                        <option value="mobile">携帯のみ</option>
+                      </select>
+                    </div>
+                    <div class="col-sm-6">
+                      <label for="contactKindMatching" class="form-label">種類の判定方法</label>
+                      <select id="contactKindMatching" class="form-select">
+                        <option value="compatible">従来の判定</option>
+                        <option value="specific">種類を先に確定</option>
+                      </select>
+                    </div>
+                  </div>
                   <div class="d-flex flex-wrap gap-2 mt-3">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-phone-example="03-1234-5678">
                       国内表記の例
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-phone-example="+81-3-1234-5678">
                       +81 表記の例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      data-phone-example="08001234567" data-phone-kinds="mobile" data-phone-format="domestic">
+                      携帯専用欄で 0800 を試す
                     </button>
                   </div>
                 </div>
@@ -225,7 +245,7 @@ isMobilePhoneJP("090-1234-5678")
                 <div class="card-body p-4">
                   <h3 class="h5 fw-bold mb-3">Results</h3>
                   <div class="border rounded-3 px-3 py-2 mb-2">
-                    <h4 class="h6 mb-1">問い合わせ先（固定・携帯）</h4>
+                    <h4 class="h6 mb-1">問い合わせ先の判定</h4>
                     <p id="contactFeedback" class="mb-0" role="status"></p>
                   </div>
                   <div id="demoResults" class="demo-result d-grid gap-2"></div>
@@ -324,7 +344,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v0.8.0 の判定関数</p>
+              <p class="muted mb-0">v0.9.0 の判定関数</p>
             </div>
           </div>
 
@@ -369,7 +389,7 @@ isMobilePhoneJP("090-1234-5678")
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                   <h3 class="h5 fw-bold">isStrictPhoneNumberJP</h3>
-                  <p class="muted"><code>kinds</code> で番号の種類、<code>format</code> で表記を選べます。</p>
+                  <p class="muted"><code>kinds</code> で番号の種類、<code>format</code> で表記を選べます。<code>kindMatching</code> で種類の判定方法を切り替えられます。</p>
                   <code>{ kinds: ["landline", "mobile"], format: "either" }</code>
                 </div>
               </div>
@@ -453,11 +473,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@0.8.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@0.9.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@0.8.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@0.9.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -465,7 +485,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.8.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.9.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -542,29 +562,43 @@ isStrictPhoneNumberJP(value)
       const input = document.getElementById("demoInput")
       const results = document.getElementById("demoResults")
       const contactFormat = document.getElementById("contactFormat")
+      const contactKinds = document.getElementById("contactKinds")
+      const contactKindMatching = document.getElementById("contactKindMatching")
       const contactFeedback = document.getElementById("contactFeedback")
       const contactExamples = {
         domestic: "03-1234-5678",
         international: "+81-3-1234-5678",
         either: "03-1234-5678 や +81-3-1234-5678",
       }
+      const mobileExamples = {
+        domestic: "090-1234-5678",
+        international: "+81-90-1234-5678",
+        either: "090-1234-5678 や +81-90-1234-5678",
+      }
 
-      function contactMessages(format) {
-        const example = contactExamples[format]
+      function contactMessages(format, mobileOnly = false) {
+        const example = (mobileOnly ? mobileExamples : contactExamples)[format]
         return {
           empty: "電話番号を入力してください。",
           invalid_format: `${example} のように入力してください。`,
-          kind_not_allowed: "固定電話または携帯電話の番号を入力してください。",
+          kind_not_allowed: mobileOnly
+            ? "携帯電話の番号を入力してください。"
+            : "固定電話または携帯電話の番号を入力してください。",
           format_not_allowed: `受け付ける表記に合わせて、${example} のように入力してください。`,
         }
       }
 
       function renderContactFeedback(value) {
         const format = contactFormat.value
-        const result = validateStrictPhoneNumberJP(value, { kinds: ["landline", "mobile"], format })
+        const mobileOnly = contactKinds.value === "mobile"
+        const result = validateStrictPhoneNumberJP(value, {
+          kinds: mobileOnly ? ["mobile"] : ["landline", "mobile"],
+          format,
+          kindMatching: contactKindMatching.value,
+        })
         contactFeedback.textContent = result.ok
           ? "この電話番号を受け付けられます。"
-          : contactMessages(format)[result.reason]
+          : contactMessages(format, mobileOnly)[result.reason]
       }
 
       function renderResults() {
@@ -585,11 +619,15 @@ isStrictPhoneNumberJP(value)
 
       input.addEventListener("input", renderResults)
       contactFormat.addEventListener("change", renderResults)
+      contactKinds.addEventListener("change", renderResults)
+      contactKindMatching.addEventListener("change", renderResults)
       renderResults()
 
       document.querySelectorAll("[data-phone-example]").forEach((button) => {
         button.addEventListener("click", () => {
           input.value = button.dataset.phoneExample
+          contactKinds.value = button.dataset.phoneKinds ?? contactKinds.value
+          contactFormat.value = button.dataset.phoneFormat ?? contactFormat.value
           renderResults()
           input.focus()
         })

@@ -3,6 +3,7 @@ import {
   validatePostalCodeJP,
   validateStrictPhoneNumberJP,
   type FuriganaFailureReason,
+  type PhoneNumberKindMatching,
   type PostalCodeFailureReason,
   type StrictPhoneNumberFailureReason,
   type StrictPhoneNumberOptions,
@@ -34,4 +35,13 @@ const phoneReason: StrictPhoneNumberFailureReason = invalidPhone.reason
 const furiganaReason: FuriganaFailureReason = invalidFurigana.reason
 if (postalReason !== "invalid_length" || phoneReason !== "kind_not_allowed" || furiganaReason !== "invalid_character") {
   throw new Error("Unexpected field validation reasons")
+}
+
+const kindMatching: PhoneNumberKindMatching = "specific"
+const tollFreeInMobileField = validateStrictPhoneNumberJP("08001234567", {
+  kinds: ["mobile"],
+  kindMatching,
+})
+if (tollFreeInMobileField.ok || tollFreeInMobileField.reason !== "kind_not_allowed") {
+  throw new Error("Expected specific matching to reject an 0800 number in a mobile field")
 }

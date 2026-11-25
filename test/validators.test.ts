@@ -212,6 +212,55 @@ describe("validateStrictPhoneNumberJP", () => {
   })
 })
 
+describe("phone number kind matching", () => {
+  const mobileOnly = { kinds: ["mobile"], format: "either" } as const
+  const bothKinds = { kinds: ["mobile", "tollFree"], format: "either" } as const
+
+  it.each([
+    ["08001234567", bothKinds, "tollFree", "domestic"],
+    ["08001234567", { kinds: ["tollFree", "mobile"] }, "tollFree", "domestic"],
+    ["0800-123-4567", { kinds: ["tollFree"] }, "tollFree", "domestic"],
+    ["080-1234-5678", mobileOnly, "mobile", "domestic"],
+    ["+81-80-1234-5678", mobileOnly, "mobile", "international"],
+    ["+818012345678", mobileOnly, "mobile", "international"],
+    ["+81-3-1234-5678", { kinds: ["landline"], format: "either" }, "landline", "international"],
+    ["050-1234-5678", { kinds: ["ip"] }, "ip", "domestic"],
+  ] as const)("classifies %s in specific mode", (value, options, kind, format) => {
+    const settings = { ...options, kindMatching: "specific" } as const
+    expect(validateStrictPhoneNumberJP(value, settings)).toEqual({ ok: true, kind, format })
+    expect(isStrictPhoneNumberJP(value, settings)).toBe(true)
+  })
+
+  it.each([
+    ["", mobileOnly, "empty"],
+    ["08001234567", mobileOnly, "kind_not_allowed"],
+    ["0800-123-4567", mobileOnly, "kind_not_allowed"],
+    ["080-0123-4567", bothKinds, "invalid_format"],
+    ["080-0123-4567", mobileOnly, "invalid_format"],
+    ["0800123-4567", bothKinds, "invalid_format"],
+    ["+818001234567", bothKinds, "invalid_format"],
+    ["+81-80-0123-4567", bothKinds, "invalid_format"],
+    ["+81-800-123-4567", bothKinds, "invalid_format"],
+    ["+815012345678", { kinds: ["ip"], format: "either" }, "invalid_format"],
+    ["08001234567", { kinds: ["mobile"], format: "international" }, "kind_not_allowed"],
+    ["08001234567", { kinds: ["tollFree"], format: "international" }, "format_not_allowed"],
+  ] as const)("reports why %j was rejected in specific mode", (value, options, reason) => {
+    const settings = { ...options, kindMatching: "specific" } as const
+    expect(validateStrictPhoneNumberJP(value, settings)).toEqual({ ok: false, reason })
+    expect(isStrictPhoneNumberJP(value, settings)).toBe(false)
+  })
+
+  it.each(["08001234567", "080-0123-4567", "+818001234567", "+81-80-0123-4567"])(
+    "retains the previous mobile match for %s by default",
+    (value) => {
+      const result = validateStrictPhoneNumberJP(value, mobileOnly)
+      const format = value.startsWith("+") ? "international" : "domestic"
+      expect(result).toEqual({ ok: true, kind: "mobile", format })
+      expect(validateStrictPhoneNumberJP(value, { ...mobileOnly, kindMatching: "compatible" })).toEqual(result)
+    },
+  )
+})
+
 describe("isLandlinePhoneJP", () => {
   it.each([
     "03-1234-5678", "011-234-5678", "0467-23-4567", "04998-2-1234",
