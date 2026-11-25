@@ -82,6 +82,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto gap-lg-2">
             <li class="nav-item"><a class="nav-link" href="#demo">Demo</a></li>
+            <li class="nav-item"><a class="nav-link" href="#form-demo">フォーム</a></li>
             <li class="nav-item"><a class="nav-link" href="#install">Install</a></li>
             <li class="nav-item"><a class="nav-link" href="#api">API</a></li>
             <li class="nav-item"><a class="nav-link" href="#cdn">CDN</a></li>
@@ -261,6 +262,42 @@ isMobilePhoneJP("090-1234-5678")
         </div>
       </section>
 
+      <section id="form-demo" class="py-5 border-top">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-7">
+              <h2 class="fw-bold">問い合わせフォーム</h2>
+              <p class="muted">3項目とも必須です。</p>
+              <form id="inquiryForm" class="card border-0 shadow-sm rounded-4 p-4" novalidate>
+                <div class="mb-3">
+                  <label for="inquiryPostalCode" class="form-label fw-semibold">郵便番号</label>
+                  <input id="inquiryPostalCode" class="form-control" placeholder="150-0001"
+                    aria-describedby="inquiryPostalCodeFeedback" required />
+                  <p id="inquiryPostalCodeFeedback" class="invalid-feedback mb-0"></p>
+                </div>
+                <div class="mb-3">
+                  <label for="inquiryPhone" class="form-label fw-semibold">電話番号</label>
+                  <input id="inquiryPhone" type="tel" class="form-control" placeholder="+81-3-1234-5678"
+                    aria-describedby="inquiryPhoneHint inquiryPhoneFeedback" required />
+                  <div id="inquiryPhoneHint" class="form-text">固定電話または携帯電話の国内表記と +81 表記に対応しています。</div>
+                  <p id="inquiryPhoneFeedback" class="invalid-feedback mb-0"></p>
+                </div>
+                <div class="mb-3">
+                  <label for="inquiryFurigana" class="form-label fw-semibold">氏名のフリガナ</label>
+                  <input id="inquiryFurigana" class="form-control" placeholder="タナカ タロウ"
+                    aria-describedby="inquiryFuriganaFeedback" required />
+                  <p id="inquiryFuriganaFeedback" class="invalid-feedback mb-0"></p>
+                </div>
+                <div>
+                  <button type="submit" class="btn btn-primary">入力内容を確認</button>
+                </div>
+                <p id="inquiryStatus" class="mt-3 mb-0" role="status"></p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="install" class="py-5 bg-light border-top border-bottom">
         <div class="container">
           <div class="row g-4 align-items-center">
@@ -287,7 +324,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v0.7.0 の判定関数</p>
+              <p class="muted mb-0">v0.8.0 の判定関数</p>
             </div>
           </div>
 
@@ -416,11 +453,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@0.7.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@0.8.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@0.7.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@0.8.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -428,7 +465,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.7.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.8.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -512,22 +549,22 @@ isStrictPhoneNumberJP(value)
         either: "03-1234-5678 や +81-3-1234-5678",
       }
 
-      function renderContactFeedback(value) {
-        const format = contactFormat.value
-        const result = validateStrictPhoneNumberJP(value, { kinds: ["landline", "mobile"], format })
-        if (result.ok) {
-          contactFeedback.textContent = "この電話番号を受け付けられます。"
-          return
-        }
-
+      function contactMessages(format) {
         const example = contactExamples[format]
-        const messages = {
+        return {
           empty: "電話番号を入力してください。",
           invalid_format: `${example} のように入力してください。`,
           kind_not_allowed: "固定電話または携帯電話の番号を入力してください。",
           format_not_allowed: `受け付ける表記に合わせて、${example} のように入力してください。`,
         }
-        contactFeedback.textContent = messages[result.reason]
+      }
+
+      function renderContactFeedback(value) {
+        const format = contactFormat.value
+        const result = validateStrictPhoneNumberJP(value, { kinds: ["landline", "mobile"], format })
+        contactFeedback.textContent = result.ok
+          ? "この電話番号を受け付けられます。"
+          : contactMessages(format)[result.reason]
       }
 
       function renderResults() {
@@ -610,6 +647,45 @@ isStrictPhoneNumberJP(value)
           postalCodeInput.focus()
         })
       })
+
+      const inquiryForm = document.getElementById("inquiryForm")
+      const inquiryStatus = document.getElementById("inquiryStatus")
+      const inquiryPhoneOptions = { kinds: ["landline", "mobile"], format: "either" }
+      const inquiryFields = [
+        ["inquiryPostalCode", validatePostalCodeJP, postalCodeMessages],
+        ["inquiryPhone", (value) => validateStrictPhoneNumberJP(value, inquiryPhoneOptions), contactMessages("either")],
+        ["inquiryFurigana", validateFurigana, furiganaMessages],
+      ].map(([id, validate, messages]) => ({
+        input: document.getElementById(id),
+        feedback: document.getElementById(`${id}Feedback`),
+        validate,
+        messages,
+      }))
+      let inquirySubmitted = false
+
+      function renderInquiryField({ input, feedback, validate, messages }) {
+        const result = validate(input.value)
+        input.setAttribute("aria-invalid", String(!result.ok))
+        input.classList.toggle("is-invalid", !result.ok)
+        feedback.textContent = result.ok ? "" : messages[result.reason]
+        return result.ok
+      }
+
+      inquiryForm.addEventListener("submit", (event) => {
+        event.preventDefault()
+        inquirySubmitted = true
+        const invalidFields = inquiryFields.filter((field) => !renderInquiryField(field))
+        inquiryStatus.textContent = invalidFields.length === 0 ? "3項目の入力を確認しました。" : ""
+        invalidFields[0]?.input.focus()
+      })
+
+      for (const field of inquiryFields) {
+        field.input.addEventListener("input", () => {
+          if (!inquirySubmitted) return
+          inquiryStatus.textContent = ""
+          renderInquiryField(field)
+        })
+      }
 
       const normalizeExample = document.getElementById("normalizeExample")
       const normalizeResult = document.getElementById("normalizeResult")

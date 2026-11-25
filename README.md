@@ -43,6 +43,68 @@ isKatakana("タナカ タロウ")
 // true
 ```
 
+## 問い合わせフォームでの使用例
+
+郵便番号、電話番号、フリガナをそれぞれ判定し、欄ごとの案内文を返します。電話番号は固定電話と携帯電話を対象にし、国内表記と `+81` 表記を受け付けます。
+
+```ts
+import {
+  validateFurigana,
+  validatePostalCodeJP,
+  validateStrictPhoneNumberJP,
+  type FuriganaFailureReason,
+  type PostalCodeFailureReason,
+  type StrictPhoneNumberFailureReason,
+  type StrictPhoneNumberOptions,
+} from "ja-form-validators"
+
+const postalCodeMessages: Record<PostalCodeFailureReason, string> = {
+  empty: "郵便番号を入力してください。",
+  invalid_character: "半角数字と半角ハイフンを使ってください。",
+  invalid_length: "数字を7桁入力してください。",
+  invalid_separator: "ハイフンを入れる場合は、3桁目の後に1つ入れてください。",
+}
+
+const phoneOptions: StrictPhoneNumberOptions = {
+  kinds: ["landline", "mobile"],
+  format: "either",
+}
+const phoneMessages: Record<StrictPhoneNumberFailureReason, string> = {
+  empty: "電話番号を入力してください。",
+  invalid_format: "03-1234-5678 や +81-3-1234-5678 のように入力してください。",
+  kind_not_allowed: "固定電話または携帯電話の番号を入力してください。",
+  format_not_allowed: "国内表記または +81 表記で入力してください。",
+}
+
+const furiganaMessages: Record<FuriganaFailureReason, string> = {
+  empty: "フリガナを入力してください。",
+  invalid_character: "タナカ タロウ のように、全角カタカナで入力してください。",
+  missing_katakana: "全角カタカナを1文字以上入力してください。",
+}
+
+function validateInquiry(values: { postalCode: string; phone: string; furigana: string }) {
+  const postalCode = validatePostalCodeJP(values.postalCode)
+  const phone = validateStrictPhoneNumberJP(values.phone, phoneOptions)
+  const furigana = validateFurigana(values.furigana)
+
+  return {
+    postalCode: postalCode.ok ? "" : postalCodeMessages[postalCode.reason],
+    phone: phone.ok ? "" : phoneMessages[phone.reason],
+    furigana: furigana.ok ? "" : furiganaMessages[furigana.reason],
+  }
+}
+
+const errors = validateInquiry({
+  postalCode: "150-001",
+  phone: "+81-3-1234-5678",
+  furigana: "ﾀﾅｶ",
+})
+// errors.postalCode は「数字を7桁入力してください。」
+// errors.phone は空文字、errors.furigana は全角カタカナの案内
+```
+
+空文字が返った欄はそのまま進めます。送信時は空文字以外の案内をすべて表示し、最初に修正が必要な欄にフォーカスを移します。表記ゆれを許容する欄は、`validateInquiry` に値を渡す前に正規化してください。
+
 ## API
 
 ### `isPostalCodeJP(value: string): boolean`
@@ -261,6 +323,10 @@ isStrictPhoneNumberJP(value)
 
 `npm run build` は配布用の JavaScript と型定義を生成し、デモが読み込む `docs/validators.js` と `docs/landline-metadata.js` を更新します。
 ローカルでデモを確認する場合は、`docs/` を静的ファイルサーバーで配信してください。
+
+## 配布用ファイルの検証
+
+`npm run check:package` を実行すると、ビルド後に `package.json` の `files` に指定されたものを一時的な利用側プロジェクトへ配置します。パッケージ名で3つの判定 API を読み込み、TypeScript の型チェックと JavaScript の実行を確認します。npm 公開前の処理でもこの検証を実行します。
 
 ## 固定電話データの更新
 
