@@ -8,6 +8,7 @@ import {
   isPostalCodeJP,
   isStrictPhoneNumberJP,
   isZenkaku,
+  validateFurigana,
   validateStrictPhoneNumberJP,
 } from "../src/index.ts"
 
@@ -226,6 +227,34 @@ describe("isFurigana", () => {
       expect(isFurigana(value)).toBe(false)
     },
   )
+})
+
+describe("validateFurigana", () => {
+  it.each(["タナカ タロウ", "　ジョー・ヤマダ ", "ァヶ", "ガ"])("accepts %s", (value) => {
+    const result = validateFurigana(value)
+    expect(result).toEqual({ ok: true })
+    expect(isFurigana(value)).toBe(result.ok)
+  })
+
+  it.each([
+    ["", "empty"],
+    [" ", "missing_katakana"],
+    ["　", "missing_katakana"],
+    ["ー", "missing_katakana"],
+    ["・", "missing_katakana"],
+    ["　・ー ", "missing_katakana"],
+    ["たなか", "invalid_character"],
+    ["ﾀﾅｶ", "invalid_character"],
+    ["カ\u3099", "invalid_character"],
+    ["ヷ", "invalid_character"],
+    ["タナカ\tタロウ", "invalid_character"],
+    ["タナカ\n", "invalid_character"],
+    ["・\t", "invalid_character"],
+  ] as const)("reports why %j was rejected", (value, reason) => {
+    const result = validateFurigana(value)
+    expect(result).toEqual({ ok: false, reason })
+    expect(isFurigana(value)).toBe(result.ok)
+  })
 })
 
 describe("isZenkaku", () => {

@@ -1,6 +1,6 @@
 {
   "name": "ja-form-validators",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Tiny TypeScript validators for Japanese form inputs.",
   "type": "module",
   "exports": {

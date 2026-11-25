@@ -28,6 +28,7 @@ import {
   isKatakana,
   isFurigana,
   isZenkaku,
+  validateFurigana,
   validateStrictPhoneNumberJP,
 } from "ja-form-validators"
 
@@ -172,6 +173,27 @@ isFurigana("ジョー・ヤマダ") // true
 isFurigana("　")            // false
 isFurigana("タナカ\tタロウ") // false
 ```
+
+### 理由付きのフリガナ判定 `validateFurigana`
+
+`isFurigana` と同じ基準で氏名欄のフリガナを判定します。成功時は `{ ok: true }`、失敗時は `{ ok: false, reason }` を返します。TypeScript では `FuriganaResult` の `ok` で結果を絞り込めます。理由コードの型は `FuriganaFailureReason` です。
+
+```ts
+validateFurigana("タナカ タロウ") // { ok: true }
+validateFurigana("")              // { ok: false, reason: "empty" }
+validateFurigana("　・ー")        // { ok: false, reason: "missing_katakana" }
+validateFurigana("ﾀﾅｶ")          // { ok: false, reason: "invalid_character" }
+```
+
+上から順に判定し、最初に該当した理由を返します。
+
+| 理由コード | 条件 | 表示メッセージの例 |
+| --- | --- | --- |
+| `empty` | 空文字 | フリガナを入力してください。 |
+| `invalid_character` | 許可されていない文字を含む | タナカ タロウ のように、全角カタカナで入力してください。 |
+| `missing_katakana` | 許可された記号と空白だけで構成されている | 全角カタカナを1文字以上入力してください。 |
+
+許可する文字は `ァ`〜`ヶ`、長音符 `ー`、中黒 `・`、半角・全角スペースです。合成済みの `ガ` は通り、`カ\u3099`（`カ` と結合濁点）は `invalid_character` になります。表記ゆれを受け付ける場合は判定前に正規化してください。`isFurigana` は同じ判定結果の `ok` を返します。
 
 ### `isZenkaku(value: string): boolean`
 

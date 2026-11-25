@@ -194,6 +194,29 @@ isMobilePhoneJP("090-1234-5678")
                   </div>
                 </div>
               </div>
+              <div class="card border-0 shadow-sm rounded-4 mt-4">
+                <div class="card-body p-4">
+                  <label for="furiganaInput" class="form-label fw-semibold">氏名のフリガナ</label>
+                  <input
+                    id="furiganaInput"
+                    class="form-control"
+                    value="タナカ タロウ"
+                    aria-describedby="furiganaFeedback"
+                  />
+                  <p id="furiganaFeedback" class="mt-2 mb-0" role="status"></p>
+                  <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="タナカ タロウ">
+                      全角カタカナの例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="ﾀﾅｶ">
+                      半角カタカナの例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="&#x3000;">
+                      空白だけの例
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="col-lg-7">
@@ -238,7 +261,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v0.5.0 の判定関数</p>
+              <p class="muted mb-0">v0.6.0 の判定関数</p>
             </div>
           </div>
 
@@ -318,6 +341,15 @@ isMobilePhoneJP("090-1234-5678")
             <div class="col-md-6 col-lg-4">
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
+                  <h3 class="h5 fw-bold">validateFurigana</h3>
+                  <p class="muted">フリガナを判定し、フォームの案内に使える理由コードを返します。</p>
+                  <code>{ ok: false, reason: "invalid_character" }</code>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
                   <h3 class="h5 fw-bold">isZenkaku</h3>
                   <p class="muted">空文字や表示可能な半角ASCIIを弾きます。半角カタカナも通ります。</p>
                   <code>山田太郎</code>
@@ -349,11 +381,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@0.5.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@0.6.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@0.5.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@0.6.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -361,7 +393,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.5.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@0.6.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -419,6 +451,7 @@ isStrictPhoneNumberJP(value)
         isPostalCodeJP,
         isStrictPhoneNumberJP,
         isZenkaku,
+        validateFurigana,
         validateStrictPhoneNumberJP,
       } from "./validators.js"
 
@@ -486,6 +519,32 @@ isStrictPhoneNumberJP(value)
           input.value = button.dataset.phoneExample
           renderResults()
           input.focus()
+        })
+      })
+
+      const furiganaInput = document.getElementById("furiganaInput")
+      const furiganaFeedback = document.getElementById("furiganaFeedback")
+      const furiganaMessages = {
+        empty: "フリガナを入力してください。",
+        invalid_character: "タナカ タロウ のように、全角カタカナで入力してください。",
+        missing_katakana: "全角カタカナを1文字以上入力してください。",
+      }
+
+      function renderFuriganaFeedback() {
+        const result = validateFurigana(furiganaInput.value)
+        furiganaFeedback.textContent = result.ok
+          ? "このフリガナを受け付けられます。"
+          : furiganaMessages[result.reason]
+      }
+
+      furiganaInput.addEventListener("input", renderFuriganaFeedback)
+      renderFuriganaFeedback()
+
+      document.querySelectorAll("[data-furigana-example]").forEach((button) => {
+        button.addEventListener("click", () => {
+          furiganaInput.value = button.dataset.furiganaExample
+          renderFuriganaFeedback()
+          furiganaInput.focus()
         })
       })
 

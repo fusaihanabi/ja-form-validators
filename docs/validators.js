@@ -61,8 +61,17 @@ export function isStrictPhoneNumberJP(value, options = {}) {
 export function isKatakana(value) {
     return /^[ァ-ヶー・\s　]+$/.test(value);
 }
+export function validateFurigana(value) {
+    if (value === "")
+        return { ok: false, reason: "empty" };
+    if (!/^[ァ-ヶー・ 　]+$/.test(value))
+        return { ok: false, reason: "invalid_character" };
+    if (!/[ァ-ヶ]/.test(value))
+        return { ok: false, reason: "missing_katakana" };
+    return { ok: true };
+}
 export function isFurigana(value) {
-    return /^[ァ-ヶー・ 　]+$/.test(value) && /[ァ-ヶ]/.test(value);
+    return validateFurigana(value).ok;
 }
 export function isZenkaku(value) {
     return value.length > 0 && !/[ -~]/.test(value);

@@ -96,8 +96,21 @@ export function isKatakana(value: string): boolean {
   return /^[ァ-ヶー・\s　]+$/.test(value)
 }
 
+export type FuriganaFailureReason = "empty" | "invalid_character" | "missing_katakana"
+
+export type FuriganaResult =
+  | { ok: true }
+  | { ok: false; reason: FuriganaFailureReason }
+
+export function validateFurigana(value: string): FuriganaResult {
+  if (value === "") return { ok: false, reason: "empty" }
+  if (!/^[ァ-ヶー・ 　]+$/.test(value)) return { ok: false, reason: "invalid_character" }
+  if (!/[ァ-ヶ]/.test(value)) return { ok: false, reason: "missing_katakana" }
+  return { ok: true }
+}
+
 export function isFurigana(value: string): boolean {
-  return /^[ァ-ヶー・ 　]+$/.test(value) && /[ァ-ヶ]/.test(value)
+  return validateFurigana(value).ok
 }
 
 export function isZenkaku(value: string): boolean {
