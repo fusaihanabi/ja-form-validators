@@ -100,17 +100,23 @@ export function validateFurigana(value, { normalization = "none" } = {}) {
 export function isFurigana(value, options) {
     return validateFurigana(value, options).ok;
 }
-export function validateZenkaku(value, { rejectHalfwidthKana = false, rejectControlCharacters = false } = {}) {
+function zenkakuCharacterFailure(reason, match, includeInvalidCharacter) {
+    return includeInvalidCharacter
+        ? { ok: false, reason, index: match.index, character: match[0] }
+        : { ok: false, reason };
+}
+export function validateZenkaku(value, { rejectHalfwidthKana = false, rejectControlCharacters = false, includeInvalidCharacter = false, } = {}) {
     if (value.length === 0)
         return { ok: false, reason: "empty" };
-    if (/[ -~]/.test(value))
-        return { ok: false, reason: "printable_ascii" };
-    if (rejectHalfwidthKana && /[\uFF66-\uFF9F]/.test(value)) {
-        return { ok: false, reason: "halfwidth_kana" };
-    }
-    if (rejectControlCharacters && /[\u0000-\u001F\u007F-\u009F]/.test(value)) {
-        return { ok: false, reason: "control_character" };
-    }
+    const ascii = /[ -~]/.exec(value);
+    if (ascii)
+        return zenkakuCharacterFailure("printable_ascii", ascii, includeInvalidCharacter);
+    const kana = rejectHalfwidthKana ? /[\uFF66-\uFF9F]/.exec(value) : null;
+    if (kana)
+        return zenkakuCharacterFailure("halfwidth_kana", kana, includeInvalidCharacter);
+    const control = rejectControlCharacters ? /[\u0000-\u001F\u007F-\u009F]/.exec(value) : null;
+    if (control)
+        return zenkakuCharacterFailure("control_character", control, includeInvalidCharacter);
     return { ok: true };
 }
 export function isZenkaku(value, options) {

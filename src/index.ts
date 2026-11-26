@@ -172,34 +172,74 @@ export interface ZenkakuOptions<RejectControlCharacters extends boolean = false>
   rejectControlCharacters?: RejectControlCharacters
 }
 
+export interface ZenkakuValidationOptions<RejectControlCharacters extends boolean = false>
+  extends ZenkakuOptions<RejectControlCharacters> {
+  includeInvalidCharacter?: boolean
+}
+
 export type ZenkakuFailureReason<RejectControlCharacters extends boolean = false> =
   | "empty"
   | "printable_ascii"
   | "halfwidth_kana"
   | (true extends RejectControlCharacters ? "control_character" : never)
 
-export type ZenkakuResult<RejectControlCharacters extends boolean = false> =
+export type ZenkakuResult<
+  RejectControlCharacters extends boolean = false,
+  IncludeInvalidCharacter extends boolean = false,
+> =
   | { ok: true }
-  | { ok: false; reason: ZenkakuFailureReason<RejectControlCharacters> }
+  | (IncludeInvalidCharacter extends true
+    ? { ok: false; reason: "empty" }
+      | {
+        ok: false
+        reason: Exclude<ZenkakuFailureReason<RejectControlCharacters>, "empty">
+        index: number
+        character: string
+      }
+    : { ok: false; reason: ZenkakuFailureReason<RejectControlCharacters> })
+
+function zenkakuCharacterFailure(
+  reason: Exclude<ZenkakuFailureReason<boolean>, "empty">,
+  match: RegExpExecArray,
+  includeInvalidCharacter: boolean,
+): ZenkakuResult<boolean, boolean> {
+  return includeInvalidCharacter
+    ? { ok: false, reason, index: match.index, character: match[0] }
+    : { ok: false, reason }
+}
 
 export function validateZenkaku<RejectControlCharacters extends boolean = false>(
   value: string,
-  options?: ZenkakuOptions<RejectControlCharacters>,
+  options: ZenkakuValidationOptions<RejectControlCharacters> & { includeInvalidCharacter: true },
+): ZenkakuResult<RejectControlCharacters, true>
+export function validateZenkaku<RejectControlCharacters extends boolean = false>(
+  value: string,
+  options?: ZenkakuValidationOptions<RejectControlCharacters> & { includeInvalidCharacter?: false },
 ): ZenkakuResult<RejectControlCharacters>
+export function validateZenkaku<RejectControlCharacters extends boolean = false>(
+  value: string,
+  options?: ZenkakuValidationOptions<RejectControlCharacters>,
+): ZenkakuResult<RejectControlCharacters, boolean>
 // Keep the default result type for existing consumers of ReturnType<typeof validateZenkaku>.
 export function validateZenkaku(value: string, options?: ZenkakuOptions): ZenkakuResult
 export function validateZenkaku(
   value: string,
-  { rejectHalfwidthKana = false, rejectControlCharacters = false }: ZenkakuOptions<boolean> = {},
-): ZenkakuResult<boolean> {
+  {
+    rejectHalfwidthKana = false,
+    rejectControlCharacters = false,
+    includeInvalidCharacter = false,
+  }: ZenkakuValidationOptions<boolean> = {},
+): ZenkakuResult<boolean, boolean> {
   if (value.length === 0) return { ok: false, reason: "empty" }
-  if (/[ -~]/.test(value)) return { ok: false, reason: "printable_ascii" }
-  if (rejectHalfwidthKana && /[\uFF66-\uFF9F]/.test(value)) {
-    return { ok: false, reason: "halfwidth_kana" }
-  }
-  if (rejectControlCharacters && /[\u0000-\u001F\u007F-\u009F]/.test(value)) {
-    return { ok: false, reason: "control_character" }
-  }
+  const ascii = /[ -~]/.exec(value)
+  if (ascii) return zenkakuCharacterFailure("printable_ascii", ascii, includeInvalidCharacter)
+
+  const kana = rejectHalfwidthKana ? /[\uFF66-\uFF9F]/.exec(value) : null
+  if (kana) return zenkakuCharacterFailure("halfwidth_kana", kana, includeInvalidCharacter)
+
+  const control = rejectControlCharacters ? /[\u0000-\u001F\u007F-\u009F]/.exec(value) : null
+  if (control) return zenkakuCharacterFailure("control_character", control, includeInvalidCharacter)
+
   return { ok: true }
 }
 

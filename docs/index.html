@@ -266,6 +266,9 @@ isMobilePhoneJP("090-1234-5678")
                     <label for="zenkakuRejectControls" class="form-check-label">制御文字も弾く</label>
                   </div>
                   <p id="zenkakuFeedback" class="mt-2 mb-0" role="status"></p>
+                  <button id="zenkakuSelectInvalid" type="button" class="btn btn-sm btn-outline-primary mt-2" disabled>
+                    該当文字を選択
+                  </button>
                   <div class="d-flex flex-wrap gap-2 mt-3">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="ﾀﾅｶ">
                       半角カタカナ
@@ -394,7 +397,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v1.4.0 の判定関数</p>
+              <p class="muted mb-0">v1.5.0 の判定関数</p>
             </div>
           </div>
 
@@ -502,8 +505,8 @@ isMobilePhoneJP("090-1234-5678")
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                   <h3 class="h5 fw-bold">validateZenkaku</h3>
-                  <p class="muted">isZenkaku と同じ条件で理由コードを返します。</p>
-                  <code>{ ok: false, reason: "control_character" }</code>
+                  <p class="muted">理由コードと、設定に応じて問題のある文字と位置を返します。</p>
+                  <code>{ includeInvalidCharacter: true }</code>
                 </div>
               </div>
             </div>
@@ -532,11 +535,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@1.4.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@1.5.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@1.4.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@1.5.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -544,7 +547,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.4.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.5.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -754,6 +757,7 @@ isStrictPhoneNumberJP(value)
       const zenkakuRejectKana = document.getElementById("zenkakuRejectKana")
       const zenkakuRejectControls = document.getElementById("zenkakuRejectControls")
       const zenkakuFeedback = document.getElementById("zenkakuFeedback")
+      const zenkakuSelectInvalid = document.getElementById("zenkakuSelectInvalid")
       const zenkakuMessages = {
         empty: "文字を入力してください。",
         printable_ascii: "半角英数字・記号・スペースを全角にしてください。",
@@ -761,17 +765,38 @@ isStrictPhoneNumberJP(value)
         control_character: "タブや改行などの制御文字を削除してください。",
       }
 
-      function renderZenkakuFeedback() {
-        const result = validateZenkaku(zenkakuInput.value, {
+      function getZenkakuResult() {
+        return validateZenkaku(zenkakuInput.value, {
           rejectHalfwidthKana: zenkakuRejectKana.checked,
           rejectControlCharacters: zenkakuRejectControls.checked,
+          includeInvalidCharacter: true,
         })
-        zenkakuFeedback.textContent = result.ok ? "この設定で入力できます。" : zenkakuMessages[result.reason]
+      }
+
+      function renderZenkakuFeedback() {
+        const result = getZenkakuResult()
+        zenkakuSelectInvalid.disabled = result.ok || result.reason === "empty"
+        if (result.ok || result.reason === "empty") {
+          zenkakuFeedback.textContent = result.ok ? "この設定で入力できます。" : zenkakuMessages.empty
+          return
+        }
+
+        const codePoint = result.character.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")
+        const character = result.reason === "control_character" || result.character === " "
+          ? `U+${codePoint}`
+          : `「${result.character}」（U+${codePoint}）`
+        zenkakuFeedback.textContent = `${zenkakuMessages[result.reason]} 該当文字は ${character} です。`
       }
 
       zenkakuInput.addEventListener("input", renderZenkakuFeedback)
       zenkakuRejectKana.addEventListener("change", renderZenkakuFeedback)
       zenkakuRejectControls.addEventListener("change", renderZenkakuFeedback)
+      zenkakuSelectInvalid.addEventListener("click", () => {
+        const result = getZenkakuResult()
+        if (result.ok || result.reason === "empty") return
+        zenkakuInput.focus()
+        zenkakuInput.setSelectionRange(result.index, result.index + result.character.length)
+      })
       renderZenkakuFeedback()
 
       document.querySelectorAll("[data-zenkaku-example]").forEach((button) => {

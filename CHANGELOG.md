@@ -1,5 +1,10 @@
 # 変更履歴
 
+## 1.5.0
+
+- `validateZenkaku` に `includeInvalidCharacter` を追加しました。有効にすると、最初に該当した理由の対象文字と UTF-16 インデックスを返します。成功時、空文字、設定を省略した場合は従来の結果形式です。
+- デモで問題のある文字のコードポイントを確認し、入力欄でその文字を選択できます。
+
 ## 1.4.0
 
 - `validateFurigana` と `isFurigana` に `FuriganaOptions.normalization` を追加しました。`"NFC"` を指定すると判定時に濁点・半濁点を合成し、`カ\u3099` や `ハ\u309A` を受け付けます。

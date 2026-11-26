@@ -525,3 +525,45 @@ describe("Zenkaku control character rejection", () => {
     expect(validateZenkaku("ﾀﾅｶ\n", options)).toEqual({ ok: false, reason: "control_character" })
   })
 })
+
+describe("Zenkaku invalid character details", () => {
+  const options = {
+    includeInvalidCharacter: true,
+    rejectHalfwidthKana: true,
+    rejectControlCharacters: true,
+  } as const
+
+  it.each([
+    ["🙂山田Taro", "printable_ascii", 4, "T"],
+    ["\t山田Taro", "printable_ascii", 3, "T"],
+    ["ｶA", "printable_ascii", 1, "A"],
+    ["山田 太郎", "printable_ascii", 2, " "],
+    ["\n山田ﾀﾅｶ", "halfwidth_kana", 3, "ﾀ"],
+    ["🙂ガﾞ", "halfwidth_kana", 3, "ﾞ"],
+    ["🙂\t山田\n", "control_character", 2, "\t"],
+    ["山田\u009F", "control_character", 2, "\u009F"],
+  ] as const)("reports the first character for the selected reason in %j", (value, reason, index, character) => {
+    const result = validateZenkaku(value, options)
+    expect(result).toEqual({ ok: false, reason, index, character })
+    expect(value.slice(index, index + character.length)).toBe(character)
+  })
+
+  it("keeps the existing shape for success and empty input", () => {
+    expect(validateZenkaku("山田　太郎", options)).toEqual({ ok: true })
+    expect(validateZenkaku("", options)).toEqual({ ok: false, reason: "empty" })
+  })
+
+  it("keeps the existing shape with details omitted or disabled", () => {
+    const expected = { ok: false, reason: "printable_ascii" }
+    expect(validateZenkaku("山田Taro")).toEqual(expected)
+    expect(validateZenkaku("山田Taro", { includeInvalidCharacter: false })).toEqual(expected)
+    expect(isZenkaku("山田Taro")).toBe(false)
+  })
+
+  it("reports only characters disallowed by the selected options", () => {
+    expect(validateZenkaku("ﾀ\t", { includeInvalidCharacter: true })).toEqual({ ok: true })
+    expect(validateZenkaku("ﾀ\t", { includeInvalidCharacter: true, rejectControlCharacters: true })).toEqual({
+      ok: false, reason: "control_character", index: 1, character: "\t",
+    })
+  })
+})

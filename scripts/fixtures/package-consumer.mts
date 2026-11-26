@@ -15,6 +15,7 @@ import {
   type ZenkakuFailureReason,
   type ZenkakuOptions,
   type ZenkakuResult,
+  type ZenkakuValidationOptions,
 } from "ja-form-validators"
 
 const phoneOptions: StrictPhoneNumberOptions = { kinds: ["landline", "mobile"], format: "either" }
@@ -112,3 +113,31 @@ function checkControlOption(rejectControlCharacters: boolean) {
 
 checkControlOption(false)
 checkControlOption(true)
+
+const detailedOptions = {
+  includeInvalidCharacter: true,
+  rejectControlCharacters: true,
+} as const satisfies ZenkakuValidationOptions<true>
+const detailedResult: ZenkakuResult<true, true> = validateZenkaku("🙂\t山田", detailedOptions)
+if (detailedResult.ok || detailedResult.reason === "empty") throw new Error("Expected details for a control character")
+if (detailedResult.reason !== "control_character" || detailedResult.index !== 2 || detailedResult.character !== "\t") {
+  throw new Error("Unexpected invalid character details")
+}
+
+const withoutDetails: ZenkakuResult<true> = validateZenkaku("山田\t", {
+  rejectControlCharacters: true,
+  includeInvalidCharacter: false,
+})
+if (withoutDetails.ok || "index" in withoutDetails) throw new Error("Expected a failure reason without details")
+
+function checkDynamicDetails(includeInvalidCharacter: boolean) {
+  const options: ZenkakuValidationOptions = { includeInvalidCharacter }
+  const result = validateZenkaku("山田Taro", options)
+  if (result.ok || ("index" in result) !== includeInvalidCharacter) {
+    throw new Error("Expected details to follow the provided option")
+  }
+  if ("index" in result && result.index !== 2) throw new Error("Expected the first ASCII character position")
+}
+
+checkDynamicDetails(false)
+checkDynamicDetails(true)

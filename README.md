@@ -385,6 +385,28 @@ validateZenkaku("山田Taro\n", { rejectControlCharacters: true })
 
 型引数を省略した `ZenkakuOptions`、`ZenkakuResult`、`ZenkakuFailureReason` は、制御文字の拒否を無効にした場合の型です。有効にする設定を型注釈で指定する場合は `ZenkakuOptions<true>`、真偽値で切り替える場合は `ZenkakuOptions<boolean>` を使います。呼び出し時に設定を書くと、`validateZenkaku` はそこから戻り値の型を推論します。
 
+#### 修正が必要な文字と位置を取得する
+
+`validateZenkaku` に `includeInvalidCharacter: true` を指定すると、優先された理由に該当する最初の文字 `character` と、その位置 `index` を返します。`index` は入力の先頭を `0` とする UTF-16 インデックスです。成功時と空文字の失敗は、従来と同じ結果形式です。
+
+```ts
+validateZenkaku("🙂山田Taro", { includeInvalidCharacter: true })
+// { ok: false, reason: "printable_ascii", index: 4, character: "T" }
+
+function selectInvalidCharacter(input: HTMLInputElement | HTMLTextAreaElement) {
+  const result = validateZenkaku(input.value, {
+    includeInvalidCharacter: true,
+    rejectControlCharacters: true,
+  })
+  if (!result.ok && result.reason !== "empty") {
+    input.focus()
+    input.setSelectionRange(result.index, result.index + result.character.length)
+  }
+}
+```
+
+位置を含める設定の型は `ZenkakuValidationOptions` です。`includeInvalidCharacter` を `true` として渡すと、文字由来の失敗では `index` と `character` をそのまま読めます。実行時に真偽値を切り替える場合は `"index" in result` で位置の有無を確認できます。設定を省略すると、従来の戻り値の型が推論されます。
+
 ## Works great with normalize-ja-input
 
 全角数字・空白・ハイフンの表記ゆれを整える場合は、判定前に `normalize-ja-input` を使えます。フリガナの濁点・半濁点の合成には、フリガナ判定の `normalization: "NFC"` を指定できます。
