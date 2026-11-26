@@ -11,6 +11,7 @@ import {
   validateFurigana,
   validatePostalCodeJP,
   validateStrictPhoneNumberJP,
+  validateZenkaku,
 } from "../src/index.ts"
 
 describe("isPostalCodeJP", () => {
@@ -408,5 +409,43 @@ describe("isZenkaku", () => {
     expect(isZenkaku("山田Taro")).toBe(false)
     expect(isZenkaku("山田 太郎")).toBe(false)
     expect(isZenkaku("")).toBe(false)
+  })
+})
+
+describe("validateZenkaku", () => {
+  const options = { rejectHalfwidthKana: true }
+
+  it.each(["山田太郎", "　", "🙂", "･", "\uFFA0", "\u001F", "\u007F"])(
+    "accepts %j with either setting",
+    (value) => {
+      expect(validateZenkaku(value)).toEqual({ ok: true })
+      expect(validateZenkaku(value, options)).toEqual({ ok: true })
+      expect(isZenkaku(value)).toBe(true)
+      expect(isZenkaku(value, options)).toBe(true)
+    },
+  )
+
+  it.each(["ﾀﾅｶ", "ｶﾞ", "ｰ", "山田ﾀﾛｳ", "\uFF66", "\uFF9E", "\uFF9F"])(
+    "rejects %j only when halfwidth kana is disallowed",
+    (value) => {
+      expect(validateZenkaku(value)).toEqual({ ok: true })
+      expect(validateZenkaku(value, { rejectHalfwidthKana: false })).toEqual({ ok: true })
+      expect(validateZenkaku(value, options)).toEqual({ ok: false, reason: "halfwidth_kana" })
+      expect(isZenkaku(value)).toBe(true)
+      expect(isZenkaku(value, options)).toBe(false)
+    },
+  )
+
+  it.each([
+    ["", "empty"],
+    [" ", "printable_ascii"],
+    ["~", "printable_ascii"],
+    ["山田Taro", "printable_ascii"],
+    ["山田Taroﾀﾅｶ", "printable_ascii"],
+  ] as const)("reports the first applicable reason for %j", (value, reason) => {
+    const expected = { ok: false, reason }
+    expect(validateZenkaku(value)).toEqual(expected)
+    expect(validateZenkaku(value, options)).toEqual(expected)
+    expect(isZenkaku(value, options)).toBe(false)
   })
 })

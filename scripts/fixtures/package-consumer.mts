@@ -1,13 +1,18 @@
 import {
   isMobilePhoneJP,
+  isZenkaku,
   validateFurigana,
   validatePostalCodeJP,
   validateStrictPhoneNumberJP,
+  validateZenkaku,
   type FuriganaFailureReason,
   type PhoneNumberKindMatching,
   type PostalCodeFailureReason,
   type StrictPhoneNumberFailureReason,
   type StrictPhoneNumberOptions,
+  type ZenkakuFailureReason,
+  type ZenkakuOptions,
+  type ZenkakuResult,
 } from "ja-form-validators"
 
 const phoneOptions: StrictPhoneNumberOptions = { kinds: ["landline", "mobile"], format: "either" }
@@ -55,3 +60,11 @@ if (!isMobilePhoneJP("060-1234-5678") || !mobile060.ok || mobile060.kind !== "mo
   throw new Error("Expected 060 support in domestic and international forms")
 }
 if (isMobilePhoneJP("060-0234-5678")) throw new Error("Expected 060-0 to be excluded")
+
+const zenkakuOptions: ZenkakuOptions = { rejectHalfwidthKana: true }
+const halfwidthKana: ZenkakuResult = validateZenkaku("ﾀﾅｶ", zenkakuOptions)
+if (halfwidthKana.ok) throw new Error("Expected halfwidth kana to be rejected by the option")
+const zenkakuReason: ZenkakuFailureReason = halfwidthKana.reason
+if (zenkakuReason !== "halfwidth_kana" || isZenkaku("ﾀﾅｶ", zenkakuOptions) || !isZenkaku("ﾀﾅｶ")) {
+  throw new Error("Unexpected result for the halfwidth kana option")
+}

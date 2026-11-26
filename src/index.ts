@@ -159,6 +159,28 @@ export function isFurigana(value: string): boolean {
   return validateFurigana(value).ok
 }
 
-export function isZenkaku(value: string): boolean {
-  return value.length > 0 && !/[ -~]/.test(value)
+export interface ZenkakuOptions {
+  rejectHalfwidthKana?: boolean
+}
+
+export type ZenkakuFailureReason = "empty" | "printable_ascii" | "halfwidth_kana"
+
+export type ZenkakuResult =
+  | { ok: true }
+  | { ok: false; reason: ZenkakuFailureReason }
+
+export function validateZenkaku(
+  value: string,
+  { rejectHalfwidthKana = false }: ZenkakuOptions = {},
+): ZenkakuResult {
+  if (value.length === 0) return { ok: false, reason: "empty" }
+  if (/[ -~]/.test(value)) return { ok: false, reason: "printable_ascii" }
+  if (rejectHalfwidthKana && /[\uFF66-\uFF9F]/.test(value)) {
+    return { ok: false, reason: "halfwidth_kana" }
+  }
+  return { ok: true }
+}
+
+export function isZenkaku(value: string, options?: ZenkakuOptions): boolean {
+  return validateZenkaku(value, options).ok
 }

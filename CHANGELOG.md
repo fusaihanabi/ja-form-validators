@@ -1,5 +1,10 @@
 # 変更履歴
 
+## 1.2.0
+
+- `isZenkaku` に `rejectHalfwidthKana` を追加しました。`true` を指定すると `U+FF66`〜`U+FF9F` の半角カタカナ・長音符・濁点・半濁点を弾きます。省略時の判定は `1.1.0` と同じです。
+- `validateZenkaku` を追加しました。`empty`、`printable_ascii`、`halfwidth_kana` の優先順で理由を返します。
+
 ## 1.1.0
 
 `isMobilePhoneJP`、`isStrictPhoneNumberJP`、`validateStrictPhoneNumberJP` で、`060` の直後に `1`〜`9` が続く国内11桁を携帯電話として判定できるようにしました。厳密な判定では国内表記の `060-1234-5678` と、許可された場合の `+81-60-1234-5678` を受け付けます。`060-0234-5678` は携帯電話の対象範囲外です。

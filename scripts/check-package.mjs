@@ -22,7 +22,7 @@ try {
   const tsc = join(root, "node_modules", "typescript", "bin", "tsc")
   execFileSync(process.execPath, [tsc, "--module", "NodeNext", "--strict", "consumer.mts"], options)
   execFileSync(process.execPath, ["consumer.mjs"], options)
-  console.log("Package check passed: the consumer can compile and run all three validators.")
+  console.log("Package check passed: the consumer can compile and run the validators.")
 } finally {
   await rm(consumer, { recursive: true })
 }

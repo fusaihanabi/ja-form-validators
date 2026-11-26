@@ -242,6 +242,32 @@ isMobilePhoneJP("090-1234-5678")
                   </div>
                 </div>
               </div>
+              <div id="zenkaku-demo" class="card border-0 shadow-sm rounded-4 mt-4">
+                <div class="card-body p-4">
+                  <label for="zenkakuInput" class="form-label fw-semibold">全角欄の入力例</label>
+                  <input id="zenkakuInput" class="form-control" value="ﾀﾅｶ"
+                    aria-describedby="zenkakuFeedback" />
+                  <div class="form-check mt-3">
+                    <input id="zenkakuRejectKana" class="form-check-input" type="checkbox" />
+                    <label for="zenkakuRejectKana" class="form-check-label">半角カタカナも弾く</label>
+                  </div>
+                  <p id="zenkakuFeedback" class="mt-2 mb-0" role="status"></p>
+                  <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="ﾀﾅｶ">
+                      半角カタカナ
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="山田Taro">
+                      半角英字
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="&#x3000;">
+                      全角スペース
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="🙂">
+                      絵文字
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="col-lg-7">
@@ -348,7 +374,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v1.1.0 の判定関数</p>
+              <p class="muted mb-0">v1.2.0 の判定関数</p>
             </div>
           </div>
 
@@ -447,8 +473,17 @@ isMobilePhoneJP("090-1234-5678")
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                   <h3 class="h5 fw-bold">isZenkaku</h3>
-                  <p class="muted">空文字や表示可能な半角ASCIIを弾きます。半角カタカナも通ります。</p>
-                  <code>山田太郎</code>
+                  <p class="muted">空文字や表示可能な半角ASCIIを弾きます。設定で半角カタカナも弾けます。</p>
+                  <code>{ rejectHalfwidthKana: true }</code>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="card h-100 border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                  <h3 class="h5 fw-bold">validateZenkaku</h3>
+                  <p class="muted">isZenkaku と同じ条件で理由コードを返します。</p>
+                  <code>{ ok: false, reason: "halfwidth_kana" }</code>
                 </div>
               </div>
             </div>
@@ -477,11 +512,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@1.1.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@1.2.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@1.1.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@1.2.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -489,7 +524,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.1.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.2.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -550,6 +585,7 @@ isStrictPhoneNumberJP(value)
         validateFurigana,
         validatePostalCodeJP,
         validateStrictPhoneNumberJP,
+        validateZenkaku,
       } from "./validators.js"
 
       const validators = [
@@ -687,6 +723,32 @@ isStrictPhoneNumberJP(value)
           postalCodeInput.value = button.dataset.postalCodeExample
           renderPostalCodeFeedback()
           postalCodeInput.focus()
+        })
+      })
+
+      const zenkakuInput = document.getElementById("zenkakuInput")
+      const zenkakuRejectKana = document.getElementById("zenkakuRejectKana")
+      const zenkakuFeedback = document.getElementById("zenkakuFeedback")
+      const zenkakuMessages = {
+        empty: "文字を入力してください。",
+        printable_ascii: "半角英数字・記号・スペースを全角にしてください。",
+        halfwidth_kana: "カタカナを全角にしてください。",
+      }
+
+      function renderZenkakuFeedback() {
+        const result = validateZenkaku(zenkakuInput.value, { rejectHalfwidthKana: zenkakuRejectKana.checked })
+        zenkakuFeedback.textContent = result.ok ? "この設定で入力できます。" : zenkakuMessages[result.reason]
+      }
+
+      zenkakuInput.addEventListener("input", renderZenkakuFeedback)
+      zenkakuRejectKana.addEventListener("change", renderZenkakuFeedback)
+      renderZenkakuFeedback()
+
+      document.querySelectorAll("[data-zenkaku-example]").forEach((button) => {
+        button.addEventListener("click", () => {
+          zenkakuInput.value = button.dataset.zenkakuExample
+          renderZenkakuFeedback()
+          zenkakuInput.focus()
         })
       })
 

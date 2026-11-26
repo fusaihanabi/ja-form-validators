@@ -8,7 +8,7 @@ Tiny TypeScript validators for Japanese form inputs.
 - 固定電話・携帯電話・IP電話・フリーダイヤルの厳密な形式（固定電話と携帯電話は `+81` 表記にも対応）
 - 全角カタカナ
 - 氏名欄向けのフリガナ
-- 表示可能な半角 ASCII の有無
+- 表示可能な半角 ASCII と、設定に応じた半角カタカナの有無
 
 ## Install
 
@@ -33,6 +33,7 @@ import {
   validateFurigana,
   validatePostalCodeJP,
   validateStrictPhoneNumberJP,
+  validateZenkaku,
 } from "ja-form-validators"
 
 isPostalCodeJP("150-0001")
@@ -322,17 +323,34 @@ validateFurigana("ﾀﾅｶ")          // { ok: false, reason: "invalid_characte
 
 許可する文字は `ァ`〜`ヶ`、長音符 `ー`、中黒 `・`、半角・全角スペースです。合成済みの `ガ` は通り、`カ\u3099`（`カ` と結合濁点）は `invalid_character` になります。表記ゆれを受け付ける場合は判定前に正規化してください。`isFurigana` は同じ判定結果の `ok` を返します。
 
-### `isZenkaku(value: string): boolean`
+### `isZenkaku(value: string, options?: ZenkakuOptions): boolean`
 
-空文字、または表示可能な半角 ASCII（半角スペース、英数字、記号を含む）が入った文字列に `false` を返します。半角カタカナ、絵文字、全角スペースは通ります。
+空文字、または表示可能な半角 ASCII（半角スペース、英数字、記号を含む）が入った文字列に `false` を返します。`rejectHalfwidthKana: true` を指定すると、半角カタカナも弾きます。既定値の `false` では半角カタカナが通ります。
 
 ```ts
 isZenkaku("山田太郎") // true
 isZenkaku("山田Taro") // false
-isZenkaku("ﾀﾅｶ")     // true
-isZenkaku("🙂")       // true
-isZenkaku("　")       // true
+isZenkaku("ﾀﾅｶ") // true
+isZenkaku("ﾀﾅｶ", { rejectHalfwidthKana: true }) // false
 ```
+
+### 理由付きの判定 `validateZenkaku`
+
+`isZenkaku` と同じ `ZenkakuOptions` を使います。成功時は `{ ok: true }`、失敗時は `{ ok: false, reason }` を返します。戻り値の型は `ZenkakuResult`、理由コードの型は `ZenkakuFailureReason` です。`isZenkaku` はこの判定結果の `ok` を返します。
+
+理由は上から順に判定します。
+
+| 理由コード | 条件 | 表示メッセージの例 |
+| --- | --- | --- |
+| `empty` | 空文字 | 文字を入力してください。 |
+| `printable_ascii` | 半角スペースを含む表示可能な ASCII（`U+0020`〜`U+007E`）がある | 半角英数字・記号・スペースを全角にしてください。 |
+| `halfwidth_kana` | `rejectHalfwidthKana: true` で、半角カタカナ・長音符・濁点・半濁点（`U+FF66`〜`U+FF9F`）がある | カタカナを全角にしてください。 |
+
+| 入力 | 既定の判定 | `rejectHalfwidthKana: true` |
+| --- | --- | --- |
+| `山田Taroﾀﾅｶ` | `printable_ascii` | `printable_ascii` |
+| `ﾀﾅｶ`、`ｶﾞ`、`ｰ` | 成功 | `halfwidth_kana` |
+| 全角スペース、`🙂`、半角中黒の `･` | 成功 | 成功 |
 
 ## Works great with normalize-ja-input
 
@@ -368,7 +386,7 @@ isStrictPhoneNumberJP(value)
 
 ## 配布用ファイルの検証
 
-`npm run check:package` を実行すると、ビルド後に `package.json` の `files` に指定されたものを一時的な利用側プロジェクトへ配置します。パッケージ名で3つの判定 API を読み込み、TypeScript の型チェックと JavaScript の実行を確認します。npm 公開前の処理でもこの検証を実行します。
+`npm run check:package` を実行すると、ビルド後に `package.json` の `files` に指定されたものを一時的な利用側プロジェクトへ配置します。パッケージ名で判定 API を読み込み、TypeScript の型チェックと JavaScript の実行を確認します。npm 公開前の処理でもこの検証を実行します。
 
 ## 固定電話データの更新
 
