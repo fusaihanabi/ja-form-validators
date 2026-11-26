@@ -123,7 +123,7 @@ describe("isStrictPhoneNumberJP", () => {
     expect(isStrictPhoneNumberJP("05012345678", {})).toBe(true)
     expect(isStrictPhoneNumberJP("0120123456", {})).toBe(true)
     expect(isStrictPhoneNumberJP("0312345678", {})).toBe(false)
-    expect(isStrictPhoneNumberJP("06012345678")).toBe(false)
+    expect(isStrictPhoneNumberJP("06002345678")).toBe(false)
   })
 
   it.each([
@@ -265,6 +265,55 @@ describe("phone number kind matching", () => {
       expect(isStrictPhoneNumberJP(value, settings)).toBe(true)
     },
   )
+})
+
+describe("060 mobile numbers", () => {
+  const mobile = { kinds: ["mobile"], format: "either" } as const
+
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9])("accepts 060-%i as a mobile prefix", (digit) => {
+    const domestic = "060-" + digit + "234-5678"
+    const international = "+81-60-" + digit + "234-5678"
+    expect(isMobilePhoneJP(domestic)).toBe(true)
+    expect(isMobilePhoneJP(domestic.replace(/-/g, ""))).toBe(true)
+    for (const kindMatching of ["specific", "compatible"] as const) {
+      const options = { ...mobile, kindMatching }
+      expect(validateStrictPhoneNumberJP(domestic, options)).toEqual({ ok: true, kind: "mobile", format: "domestic" })
+      expect(validateStrictPhoneNumberJP(international, options)).toEqual({ ok: true, kind: "mobile", format: "international" })
+      expect(isStrictPhoneNumberJP(domestic.replace(/-/g, ""), options)).toBe(true)
+      expect(isStrictPhoneNumberJP(international.replace(/-/g, ""), options)).toBe(true)
+    }
+  })
+
+  it.each([
+    "060-0234-5678", "06002345678", "+81-60-0234-5678", "+816002345678",
+    "060-123-5678", "060-1234-56789", "+81-060-1234-5678", "０６０-１２３４-５６７８",
+  ])("rejects %j", (value) => {
+    expect(isMobilePhoneJP(value)).toBe(false)
+    expect(validateStrictPhoneNumberJP(value, mobile)).toEqual({ ok: false, reason: "invalid_format" })
+    expect(isStrictPhoneNumberJP(value, { ...mobile, kindMatching: "compatible" })).toBe(false)
+  })
+
+  it("keeps the different separator and format policies", () => {
+    expect(isMobilePhoneJP("060-12345678")).toBe(true)
+    expect(isMobilePhoneJP("0601234-5678")).toBe(true)
+    expect(isMobilePhoneJP("+81-60-1234-5678")).toBe(false)
+    expect(validateStrictPhoneNumberJP("060-12345678", mobile)).toEqual({ ok: false, reason: "invalid_format" })
+    expect(validateStrictPhoneNumberJP("0601234-5678", mobile)).toEqual({ ok: false, reason: "invalid_format" })
+    expect(validateStrictPhoneNumberJP("+816012345678")).toEqual({ ok: false, reason: "format_not_allowed" })
+    expect(validateStrictPhoneNumberJP("06012345678", { kinds: ["landline"] })).toEqual({
+      ok: false, reason: "kind_not_allowed",
+    })
+  })
+
+  it("keeps 06 landlines and 0800 toll-free numbers distinct", () => {
+    expect(isMobilePhoneJP("06-1234-5678")).toBe(false)
+    expect(validateStrictPhoneNumberJP("06-1234-5678", { kinds: ["landline", "mobile"] })).toEqual({
+      ok: true, kind: "landline", format: "domestic",
+    })
+    expect(validateStrictPhoneNumberJP("08001234567")).toEqual({
+      ok: true, kind: "tollFree", format: "domestic",
+    })
+  })
 })
 
 describe("isLandlinePhoneJP", () => {

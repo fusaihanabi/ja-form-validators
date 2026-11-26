@@ -1,4 +1,5 @@
 import {
+  isMobilePhoneJP,
   validateFurigana,
   validatePostalCodeJP,
   validateStrictPhoneNumberJP,
@@ -48,3 +49,9 @@ const compatibleResult = validateStrictPhoneNumberJP("08001234567", { ...mobileO
 if (!compatibleResult.ok || compatibleResult.kind !== "mobile") {
   throw new Error("Expected compatible matching to retain the previous mobile match")
 }
+
+const mobile060 = validateStrictPhoneNumberJP("+81-60-1234-5678", phoneOptions)
+if (!isMobilePhoneJP("060-1234-5678") || !mobile060.ok || mobile060.kind !== "mobile") {
+  throw new Error("Expected 060 support in domestic and international forms")
+}
+if (isMobilePhoneJP("060-0234-5678")) throw new Error("Expected 060-0 to be excluded")

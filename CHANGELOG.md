@@ -1,5 +1,11 @@
 # 変更履歴
 
+## 1.1.0
+
+`isMobilePhoneJP`、`isStrictPhoneNumberJP`、`validateStrictPhoneNumberJP` で、`060` の直後に `1`〜`9` が続く国内11桁を携帯電話として判定できるようにしました。厳密な判定では国内表記の `060-1234-5678` と、許可された場合の `+81-60-1234-5678` を受け付けます。`060-0234-5678` は携帯電話の対象範囲外です。
+
+番号構成の変更は2024年12月20日に施行されました。利用者への提供開始時期は事業者ごとの案内に従います。 [総務省告示第441号](https://public-comment.e-gov.go.jp/pcm/download?seqNo=0000284288) · [携帯事業者5社の提供開始延期の発表](https://www.docomo.ne.jp/info/news_release/2026/07/08_00.html)
+
 ## 1.0.0
 
 `validateStrictPhoneNumberJP` と `isStrictPhoneNumberJP` の `kindMatching` の既定値を `"specific"` に変更しました。番号の種類を先に確定し、その種類の入力形式と `kinds`・`format` の設定を確認します。

@@ -143,13 +143,17 @@ validatePostalCodeJP("15--00001") // { ok: false, reason: "invalid_separator" }
 
 ### `isMobilePhoneJP(value: string): boolean`
 
-Checks whether the value is a Japanese mobile phone number starting with `070`, `080`, or `090`.
+`060`・`070`・`080`・`090` で始まる携帯電話番号の国内表記を判定します。`060` は直後に `1`〜`9` が続く11桁が対象です。
 
 ```ts
 isMobilePhoneJP("090-1234-5678") // true
 isMobilePhoneJP("08012345678")   // true
+isMobilePhoneJP("060-1234-5678") // true
+isMobilePhoneJP("060-0234-5678") // false
 isMobilePhoneJP("03-1234-5678")  // false
 ```
+
+`060` の番号構成は、2024年12月20日付の電気通信番号計画の変更で施行されました。この API は番号形式を判定します。利用者への提供開始時期は事業者の案内を参照してください。 [総務省告示第441号](https://public-comment.e-gov.go.jp/pcm/download?seqNo=0000284288) · [携帯事業者5社の提供開始延期の発表](https://www.docomo.ne.jp/info/news_release/2026/07/08_00.html)
 
 ### `isPhoneNumberJP(value: string): boolean`
 
@@ -179,7 +183,7 @@ isLandlinePhoneJP("031-234-5678") // false
 | `PhoneNumberKind` | 対応する形式 |
 | --- | --- |
 | `landline`（固定電話） | `03-1234-5678`、`011-234-5678` など |
-| `mobile`（携帯電話） | `070-1234-5678`、`080-1234-5678`、`090-1234-5678` |
+| `mobile`（携帯電話） | `060-1234-5678`、`070-1234-5678`、`080-1234-5678`、`090-1234-5678` |
 | `ip`（IP電話） | `050-1234-5678` |
 | `tollFree`（フリーダイヤル） | `0120-123-456`、`0800-123-4567` |
 
@@ -208,6 +212,7 @@ isStrictPhoneNumberJP("050-1234-5678", options) // false
 const options = { kinds: ["landline", "mobile"], format: "either" } as const
 isStrictPhoneNumberJP("03-1234-5678", options)     // true
 isStrictPhoneNumberJP("+81-3-1234-5678", options)  // true
+isStrictPhoneNumberJP("+81-60-1234-5678", options) // true
 isStrictPhoneNumberJP("+819012345678", options)    // true
 isStrictPhoneNumberJP("+81-03-1234-5678", options) // false
 isStrictPhoneNumberJP("+813-1234-5678", options)   // false
@@ -244,8 +249,10 @@ validateStrictPhoneNumberJP("+81-3-1234-5678", options)
 
 | `PhoneNumberKindMatching` | 判定方法 |
 | --- | --- |
-| `specific`（`1.0.0` の既定値） | ハイフンを除いた番号から種類を決め、その種類で使える区切りと表記を検査してから、`kinds` と `format` を適用します。 |
-| `compatible` | 入力された表記に合う種類のうち、`kinds` で許可したものを選びます。`0.9.0` の既定の判定です。 |
+| `specific`（`1.0.0` 以降の既定値） | ハイフンを除いた番号から種類を決め、その種類で使える区切りと表記を検査してから、`kinds` と `format` を適用します。 |
+| `compatible` | 入力された表記に合う種類のうち、`kinds` で許可したものを選びます。`0.9.0` までの既定の方式です。 |
+
+`1.1.0` で追加した `060` の番号帯は、どちらの方式でも携帯電話として判定します。
 
 `08001234567` は、ハイフンを除いた状態で携帯電話とフリーダイヤルの両方に当てはまります。`specific` では、`kinds` の指定順にかかわらず、先に `tollFree` に分類します。
 

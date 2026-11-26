@@ -22,8 +22,13 @@ export function isPostalCodeJP(value: string): boolean {
   return validatePostalCodeJP(value).ok
 }
 
+// MIC Notice No. 441 of 2024 excludes 060 numbers whose fourth digit is 0.
+const mobilePhonePrefix = "(?:060(?=-?[1-9])|070|080|090)"
+const mobilePhonePattern = new RegExp(String.raw`^${mobilePhonePrefix}-?\d{4}-?\d{4}$`)
+const strictMobilePhonePattern = new RegExp(String.raw`^${mobilePhonePrefix}(-?)\d{4}\1\d{4}$`)
+
 export function isMobilePhoneJP(value: string): boolean {
-  return /^(070|080|090)-?\d{4}-?\d{4}$/.test(value)
+  return mobilePhonePattern.test(value)
 }
 
 export function isPhoneNumberJP(value: string): boolean {
@@ -64,7 +69,7 @@ export type StrictPhoneNumberResult =
 
 const strictPhoneValidators: Record<PhoneNumberKind, (value: string) => boolean> = {
   landline: isLandlinePhoneJP,
-  mobile: (value) => /^(?:070|080|090)(-?)\d{4}\1\d{4}$/.test(value),
+  mobile: (value) => strictMobilePhonePattern.test(value),
   ip: (value) => /^050(-?)\d{4}\1\d{4}$/.test(value),
   tollFree: (value) =>
     /^0120(-?)\d{3}\1\d{3}$/.test(value) || /^0800(-?)\d{3}\1\d{4}$/.test(value),
