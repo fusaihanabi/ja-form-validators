@@ -10,6 +10,8 @@ import {
   type FuriganaOptions,
   type PhoneNumberKindMatching,
   type PostalCodeFailureReason,
+  type PostalCodeResult,
+  type PostalCodeValidationOptions,
   type StrictPhoneNumberFailureReason,
   type StrictPhoneNumberOptions,
   type ZenkakuFailureReason,
@@ -45,6 +47,35 @@ const furiganaReason: FuriganaFailureReason = invalidFurigana.reason
 if (postalReason !== "invalid_length" || phoneReason !== "kind_not_allowed" || furiganaReason !== "invalid_character") {
   throw new Error("Unexpected field validation reasons")
 }
+
+const postalOptions = { includeDetails: true } as const satisfies PostalCodeValidationOptions
+const shortPostalCode: PostalCodeResult<true> = validatePostalCodeJP("150-001", postalOptions)
+if (shortPostalCode.ok || shortPostalCode.reason !== "invalid_length" || shortPostalCode.digitCount !== 6) {
+  throw new Error("Expected the postal code digit count")
+}
+
+const invalidPostalCharacter = validatePostalCodeJP("150🙂0001", postalOptions)
+if (invalidPostalCharacter.ok || invalidPostalCharacter.reason !== "invalid_character"
+    || invalidPostalCharacter.index !== 3 || invalidPostalCharacter.character !== "🙂") {
+  throw new Error("Expected the postal code character and its position")
+}
+
+const postalWithoutDetails: ReturnType<typeof validatePostalCodeJP> = validatePostalCodeJP("150-001")
+if (postalWithoutDetails.ok || postalWithoutDetails.reason !== "invalid_length" || "digitCount" in postalWithoutDetails) {
+  throw new Error("Expected the legacy postal code result shape")
+}
+
+function checkPostalDetails(includeDetails: boolean) {
+  const options: PostalCodeValidationOptions = { includeDetails }
+  const result = validatePostalCodeJP("150--0001", options)
+  if (result.ok || ("index" in result) !== includeDetails) {
+    throw new Error("Expected postal code details to follow the provided option")
+  }
+  if ("index" in result && result.index !== 4) throw new Error("Expected the second hyphen position")
+}
+
+checkPostalDetails(false)
+checkPostalDetails(true)
 
 const furiganaOptions: FuriganaOptions = { normalization: "NFC" }
 const kanaWithCombiningMark = "カ\u3099"

@@ -1,13 +1,25 @@
 import { landlineAreaCodeRules, landlineNumberPattern } from "./landline-metadata.js";
-export function validatePostalCodeJP(value) {
+export function validatePostalCodeJP(value, { includeDetails = false } = {}) {
     if (value === "")
         return { ok: false, reason: "empty" };
-    if (/[^0-9-]/.test(value))
-        return { ok: false, reason: "invalid_character" };
-    if (!/^(?:-*[0-9]){7}-*$/.test(value))
-        return { ok: false, reason: "invalid_length" };
-    if (!/^\d{3}-?\d{4}$/.test(value))
-        return { ok: false, reason: "invalid_separator" };
+    const invalidCharacter = /[^0-9-]/u.exec(value);
+    if (invalidCharacter) {
+        return includeDetails
+            ? { ok: false, reason: "invalid_character", index: invalidCharacter.index, character: invalidCharacter[0] }
+            : { ok: false, reason: "invalid_character" };
+    }
+    if (!/^(?:-*[0-9]){7}-*$/.test(value)) {
+        return includeDetails
+            ? { ok: false, reason: "invalid_length", digitCount: value.replace(/-/g, "").length }
+            : { ok: false, reason: "invalid_length" };
+    }
+    if (!/^\d{3}-?\d{4}$/.test(value)) {
+        if (!includeDetails)
+            return { ok: false, reason: "invalid_separator" };
+        const firstHyphen = value.indexOf("-");
+        const index = firstHyphen === 3 ? value.indexOf("-", firstHyphen + 1) : firstHyphen;
+        return { ok: false, reason: "invalid_separator", index, character: "-" };
+    }
     return { ok: true };
 }
 export function isPostalCodeJP(value) {

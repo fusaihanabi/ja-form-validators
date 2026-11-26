@@ -142,6 +142,31 @@ validatePostalCodeJP("15--00001") // { ok: false, reason: "invalid_separator" }
 
 `isPostalCodeJP` は同じ判定結果の `ok` を返します。判定の対象は入力形式です。
 
+#### 郵便番号の修正に必要な情報を取得する
+
+`validatePostalCodeJP` に `includeDetails: true` を指定すると、選ばれた理由に応じて次の情報を返します。
+
+| 理由コード | 追加情報 |
+| --- | --- |
+| `invalid_character` | 最初の許可されていない文字の `index` と `character` |
+| `invalid_length` | ハイフンを除いた半角数字の数 `digitCount` |
+| `invalid_separator` | 位置が違う、または余分な最初のハイフンの `index` と `character` |
+
+```ts
+validatePostalCodeJP("150-001", { includeDetails: true })
+// { ok: false, reason: "invalid_length", digitCount: 6 }
+
+validatePostalCodeJP("150--0001", { includeDetails: true })
+// { ok: false, reason: "invalid_separator", index: 4, character: "-" }
+
+validatePostalCodeJP("150🙂0001", { includeDetails: true })
+// { ok: false, reason: "invalid_character", index: 3, character: "🙂" }
+```
+
+`index` は0始まりの UTF-16 インデックスです。入力欄では `setSelectionRange(index, index + character.length)` で該当文字を選択できます。`15-001` のように桁数と区切りの両方に問題がある場合は、先に `invalid_length` を返します。
+
+設定型は `PostalCodeValidationOptions` です。`includeDetails: true` の戻り値は `PostalCodeResult<true>` で、`reason` に応じて追加情報を読めます。成功時の `{ ok: true }` と空文字の失敗結果は従来と同じです。省略時または `false` を指定した場合は、従来の `PostalCodeResult` を返します。
+
 ### `isMobilePhoneJP(value: string): boolean`
 
 `060`・`070`・`080`・`090` で始まる携帯電話番号の国内表記を判定します。`060` は直後に `1`〜`9` が続く11桁が対象です。

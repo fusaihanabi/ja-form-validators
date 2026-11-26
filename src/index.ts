@@ -6,15 +6,58 @@ export type PostalCodeFailureReason =
   | "invalid_length"
   | "invalid_separator"
 
-export type PostalCodeResult =
-  | { ok: true }
-  | { ok: false; reason: PostalCodeFailureReason }
+export interface PostalCodeValidationOptions<IncludeDetails extends boolean = boolean> {
+  includeDetails?: IncludeDetails
+}
 
-export function validatePostalCodeJP(value: string): PostalCodeResult {
+export type PostalCodeResult<IncludeDetails extends boolean = false> =
+  | { ok: true }
+  | (IncludeDetails extends true
+    ? { ok: false; reason: "empty" }
+      | { ok: false; reason: "invalid_length"; digitCount: number }
+      | { ok: false; reason: "invalid_character" | "invalid_separator"; index: number; character: string }
+    : { ok: false; reason: PostalCodeFailureReason })
+
+export function validatePostalCodeJP(
+  value: string,
+  options: PostalCodeValidationOptions & { includeDetails: true },
+): PostalCodeResult<true>
+export function validatePostalCodeJP(
+  value: string,
+  options: PostalCodeValidationOptions<false> | undefined,
+): PostalCodeResult
+export function validatePostalCodeJP(
+  value: string,
+  options: PostalCodeValidationOptions | undefined,
+): PostalCodeResult<boolean>
+export function validatePostalCodeJP(value: string): PostalCodeResult
+export function validatePostalCodeJP(
+  value: string,
+  { includeDetails = false }: PostalCodeValidationOptions = {},
+): PostalCodeResult<boolean> {
   if (value === "") return { ok: false, reason: "empty" }
-  if (/[^0-9-]/.test(value)) return { ok: false, reason: "invalid_character" }
-  if (!/^(?:-*[0-9]){7}-*$/.test(value)) return { ok: false, reason: "invalid_length" }
-  if (!/^\d{3}-?\d{4}$/.test(value)) return { ok: false, reason: "invalid_separator" }
+
+  const invalidCharacter = /[^0-9-]/u.exec(value)
+  if (invalidCharacter) {
+    return includeDetails
+      ? { ok: false, reason: "invalid_character", index: invalidCharacter.index, character: invalidCharacter[0] }
+      : { ok: false, reason: "invalid_character" }
+  }
+
+  if (!/^(?:-*[0-9]){7}-*$/.test(value)) {
+    return includeDetails
+      ? { ok: false, reason: "invalid_length", digitCount: value.replace(/-/g, "").length }
+      : { ok: false, reason: "invalid_length" }
+  }
+
+  if (!/^\d{3}-?\d{4}$/.test(value)) {
+    if (!includeDetails) return { ok: false, reason: "invalid_separator" }
+
+    const firstHyphen = value.indexOf("-")
+    const index = firstHyphen === 3 ? value.indexOf("-", firstHyphen + 1) : firstHyphen
+    return { ok: false, reason: "invalid_separator", index, character: "-" }
+  }
+
   return { ok: true }
 }
 

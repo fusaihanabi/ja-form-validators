@@ -59,6 +59,54 @@ describe("validatePostalCodeJP", () => {
   })
 })
 
+describe("postal code validation details", () => {
+  const options = { includeDetails: true } as const
+
+  it.each([
+    ["150🙂0001", 3, "🙂"],
+    ["15--0🙂A", 5, "🙂"],
+    ["150−0001", 3, "−"],
+    ["150-0001\n", 8, "\n"],
+  ] as const)("identifies the first invalid character in %j", (value, index, character) => {
+    expect(validatePostalCodeJP(value, options)).toEqual({
+      ok: false, reason: "invalid_character", index, character,
+    })
+    expect(value.slice(index, index + character.length)).toBe(character)
+  })
+
+  it.each([
+    ["150-001", 6],
+    ["15-001", 5],
+    ["1500-0001", 8],
+    ["--", 0],
+  ] as const)("counts the digits in %j before checking separators", (value, digitCount) => {
+    expect(validatePostalCodeJP(value, options)).toEqual({
+      ok: false, reason: "invalid_length", digitCount,
+    })
+  })
+
+  it.each([
+    ["150--0001", 4],
+    ["150-00-01", 6],
+    ["15--00001", 2],
+    ["-150-0001", 0],
+    ["1500001-", 7],
+  ] as const)("identifies the first misplaced or extra hyphen in %j", (value, index) => {
+    expect(validatePostalCodeJP(value, options)).toEqual({
+      ok: false, reason: "invalid_separator", index, character: "-",
+    })
+  })
+
+  it("keeps the result shape for success, empty input, and disabled details", () => {
+    expect(validatePostalCodeJP("150-0001", options)).toEqual({ ok: true })
+    expect(validatePostalCodeJP("", options)).toEqual({ ok: false, reason: "empty" })
+    expect(validatePostalCodeJP("150--0001", { includeDetails: false })).toEqual({
+      ok: false, reason: "invalid_separator",
+    })
+    expect(isPostalCodeJP("150--0001")).toBe(false)
+  })
+})
+
 describe("isMobilePhoneJP", () => {
   it("returns true for valid Japanese mobile phone numbers", () => {
     expect(isMobilePhoneJP("090-1234-5678")).toBe(true)

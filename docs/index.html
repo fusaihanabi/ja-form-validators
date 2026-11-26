@@ -314,6 +314,11 @@ isMobilePhoneJP("090-1234-5678")
                     aria-describedby="postalCodeFeedback"
                   />
                   <p id="postalCodeFeedback" class="mt-2 mb-0" role="status"></p>
+                  <div id="postalCodeCorrection" class="mt-2" hidden>
+                    <button id="postalCodeSelectInvalid" type="button" class="btn btn-sm btn-outline-primary">
+                      該当文字を選択
+                    </button>
+                  </div>
                   <div class="d-flex flex-wrap gap-2 mt-3">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="150-0001">
                       有効な例
@@ -324,8 +329,8 @@ isMobilePhoneJP("090-1234-5678")
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="150-001">
                       桁数不足の例
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="15--00001">
-                      区切り違いの例
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="150--0001">
+                      余分なハイフンの例
                     </button>
                   </div>
                 </div>
@@ -397,7 +402,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v1.5.0 の判定関数</p>
+              <p class="muted mb-0">v1.6.0 の判定関数</p>
             </div>
           </div>
 
@@ -415,8 +420,8 @@ isMobilePhoneJP("090-1234-5678")
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                   <h3 class="h5 fw-bold">validatePostalCodeJP</h3>
-                  <p class="muted">郵便番号の文字、桁数、区切りを判定し、理由コードを返します。</p>
-                  <code>{ ok: false, reason: "invalid_separator" }</code>
+                  <p class="muted">理由コードと、設定に応じて数字の桁数や修正箇所を返します。</p>
+                  <code>{ includeDetails: true }</code>
                 </div>
               </div>
             </div>
@@ -535,11 +540,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@1.5.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@1.6.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@1.5.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@1.6.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -547,7 +552,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.5.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.6.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -728,6 +733,8 @@ isStrictPhoneNumberJP(value)
 
       const postalCodeInput = document.getElementById("postalCodeInput")
       const postalCodeFeedback = document.getElementById("postalCodeFeedback")
+      const postalCodeCorrection = document.getElementById("postalCodeCorrection")
+      const postalCodeSelectInvalid = document.getElementById("postalCodeSelectInvalid")
       const postalCodeMessages = {
         empty: "郵便番号を入力してください。",
         invalid_character: "半角数字と半角ハイフンを使ってください。",
@@ -736,13 +743,28 @@ isStrictPhoneNumberJP(value)
       }
 
       function renderPostalCodeFeedback() {
-        const result = validatePostalCodeJP(postalCodeInput.value)
+        const result = validatePostalCodeJP(postalCodeInput.value, { includeDetails: true })
+        postalCodeCorrection.hidden = !("index" in result)
+        if (!result.ok && result.reason === "invalid_length") {
+          const difference = 7 - result.digitCount
+          const guidance = difference > 0
+            ? `あと${difference}桁入力してください。`
+            : `${Math.abs(difference)}桁削除してください。`
+          postalCodeFeedback.textContent = `現在${result.digitCount}桁です。${guidance}`
+          return
+        }
         postalCodeFeedback.textContent = result.ok
           ? "この郵便番号の形式で入力できます。"
           : postalCodeMessages[result.reason]
       }
 
       postalCodeInput.addEventListener("input", renderPostalCodeFeedback)
+      postalCodeSelectInvalid.addEventListener("click", () => {
+        const result = validatePostalCodeJP(postalCodeInput.value, { includeDetails: true })
+        if (!("index" in result)) return
+        postalCodeInput.focus()
+        postalCodeInput.setSelectionRange(result.index, result.index + result.character.length)
+      })
       renderPostalCodeFeedback()
 
       document.querySelectorAll("[data-postal-code-example]").forEach((button) => {
