@@ -291,7 +291,7 @@ isKatakana("タナカ タロウ") // true
 isKatakana("たなか") // false
 ```
 
-### `isFurigana(value: string): boolean`
+### `isFurigana(value: string, options?: FuriganaOptions): boolean`
 
 氏名欄向けに、全角カタカナを1文字以上含むことを確認します。長音符、中黒、半角・全角スペースも使えます。
 
@@ -300,6 +300,7 @@ isFurigana("タナカ タロウ")   // true
 isFurigana("ジョー・ヤマダ") // true
 isFurigana("　")            // false
 isFurigana("タナカ\tタロウ") // false
+isFurigana("カ\u3099", { normalization: "NFC" }) // true
 ```
 
 ### 理由付きのフリガナ判定 `validateFurigana`
@@ -321,7 +322,27 @@ validateFurigana("ﾀﾅｶ")          // { ok: false, reason: "invalid_characte
 | `invalid_character` | 許可されていない文字を含む | タナカ タロウ のように、全角カタカナで入力してください。 |
 | `missing_katakana` | 許可された記号と空白だけで構成されている | 全角カタカナを1文字以上入力してください。 |
 
-許可する文字は `ァ`〜`ヶ`、長音符 `ー`、中黒 `・`、半角・全角スペースです。合成済みの `ガ` は通り、`カ\u3099`（`カ` と結合濁点）は `invalid_character` になります。表記ゆれを受け付ける場合は判定前に正規化してください。`isFurigana` は同じ判定結果の `ok` を返します。
+許可する文字は `ァ`〜`ヶ`、長音符 `ー`、中黒 `・`、半角・全角スペースです。`isFurigana` は同じ判定結果の `ok` を返します。
+
+#### NFC で濁点・半濁点の表記ゆれを受け付ける
+
+どちらの関数にも `FuriganaOptions` を渡せます。`normalization` の既定値は `"none"` です。`"NFC"` を指定すると、判定用の文字列だけを `String.prototype.normalize("NFC")` で合成し、同じ文字範囲で判定します。
+
+```ts
+validateFurigana("カ\u3099")
+// { ok: false, reason: "invalid_character" }
+
+validateFurigana("カ\u3099", { normalization: "NFC" })
+// { ok: true }
+```
+
+| 入力 | `"none"` | `"NFC"` |
+| --- | --- | --- |
+| 合成済みの `ガ` | 成功 | 成功 |
+| `カ\u3099`（カと結合濁点） | `invalid_character` | 成功 |
+| `ハ\u309A`（ハと結合半濁点） | `invalid_character` | 成功 |
+| `ｶﾞ`（半角カタカナ） | `invalid_character` | `invalid_character` |
+| `ワ\u3099`（合成すると `ヷ`） | `invalid_character` | `invalid_character` |
 
 ### `isZenkaku(value: string, options?: ZenkakuOptions<boolean>): boolean`
 
@@ -366,9 +387,7 @@ validateZenkaku("山田Taro\n", { rejectControlCharacters: true })
 
 ## Works great with normalize-ja-input
 
-This library does not normalize input.
-
-If you want to normalize full-width digits, spaces, or hyphen-like characters before validation, use it with `normalize-ja-input`.
+全角数字・空白・ハイフンの表記ゆれを整える場合は、判定前に `normalize-ja-input` を使えます。フリガナの濁点・半濁点の合成には、フリガナ判定の `normalization: "NFC"` を指定できます。
 
 ```ts
 import { normalizeJaInput } from "normalize-ja-input"
@@ -416,7 +435,6 @@ npm run build
 
 It does not:
 
-- normalize input
 - format values
 - parse addresses
 - validate emails or URLs

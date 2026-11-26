@@ -395,6 +395,42 @@ describe("validateFurigana", () => {
   })
 })
 
+describe("Furigana NFC normalization", () => {
+  const options = { normalization: "NFC" } as const
+
+  it.each(["カ\u3099", "ハ\u309A", "カ\u3099・ハ\u309A"])(
+    "accepts %j only when NFC composes the combining marks",
+    (value) => {
+      const invalid = { ok: false, reason: "invalid_character" }
+      expect(validateFurigana(value)).toEqual(invalid)
+      expect(validateFurigana(value, { normalization: "none" })).toEqual(invalid)
+      expect(validateFurigana(value, options)).toEqual({ ok: true })
+      expect(isFurigana(value)).toBe(false)
+      expect(isFurigana(value, options)).toBe(true)
+    },
+  )
+
+  it.each(["ガ", "パ", "　タナカ・タロウ "])("accepts %j in both modes", (value) => {
+    expect(validateFurigana(value)).toEqual({ ok: true })
+    expect(validateFurigana(value, options)).toEqual({ ok: true })
+    expect(isFurigana(value, options)).toBe(true)
+  })
+
+  it.each([
+    ["", "empty"],
+    ["　・ー", "missing_katakana"],
+    ["ｶﾞ", "invalid_character"],
+    ["ワ\u3099", "invalid_character"],
+    ["ヷ", "invalid_character"],
+    ["か\u3099", "invalid_character"],
+    ["カ\u3099\t", "invalid_character"],
+    ["　\u3099", "invalid_character"],
+  ] as const)("keeps the validation rules for %j after NFC", (value, reason) => {
+    expect(validateFurigana(value, options)).toEqual({ ok: false, reason })
+    expect(isFurigana(value, options)).toBe(false)
+  })
+})
+
 describe("isZenkaku", () => {
   it("returns true when ASCII half-width characters are not included", () => {
     expect(isZenkaku("山田太郎")).toBe(true)

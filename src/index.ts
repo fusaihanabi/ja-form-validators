@@ -142,21 +142,29 @@ export function isKatakana(value: string): boolean {
   return /^[ァ-ヶー・\s　]+$/.test(value)
 }
 
+export interface FuriganaOptions {
+  normalization?: "none" | "NFC"
+}
+
 export type FuriganaFailureReason = "empty" | "invalid_character" | "missing_katakana"
 
 export type FuriganaResult =
   | { ok: true }
   | { ok: false; reason: FuriganaFailureReason }
 
-export function validateFurigana(value: string): FuriganaResult {
-  if (value === "") return { ok: false, reason: "empty" }
-  if (!/^[ァ-ヶー・ 　]+$/.test(value)) return { ok: false, reason: "invalid_character" }
-  if (!/[ァ-ヶ]/.test(value)) return { ok: false, reason: "missing_katakana" }
+export function validateFurigana(
+  value: string,
+  { normalization = "none" }: FuriganaOptions = {},
+): FuriganaResult {
+  const text = normalization === "NFC" ? value.normalize("NFC") : value
+  if (text === "") return { ok: false, reason: "empty" }
+  if (!/^[ァ-ヶー・ 　]+$/.test(text)) return { ok: false, reason: "invalid_character" }
+  if (!/[ァ-ヶ]/.test(text)) return { ok: false, reason: "missing_katakana" }
   return { ok: true }
 }
 
-export function isFurigana(value: string): boolean {
-  return validateFurigana(value).ok
+export function isFurigana(value: string, options?: FuriganaOptions): boolean {
+  return validateFurigana(value, options).ok
 }
 
 export interface ZenkakuOptions<RejectControlCharacters extends boolean = false> {

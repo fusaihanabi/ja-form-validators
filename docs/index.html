@@ -228,6 +228,10 @@ isMobilePhoneJP("090-1234-5678")
                     value="タナカ タロウ"
                     aria-describedby="furiganaFeedback"
                   />
+                  <div class="form-check mt-3">
+                    <input id="furiganaUseNfc" class="form-check-input" type="checkbox" />
+                    <label for="furiganaUseNfc" class="form-check-label">NFC で判定</label>
+                  </div>
                   <p id="furiganaFeedback" class="mt-2 mb-0" role="status"></p>
                   <div class="d-flex flex-wrap gap-2 mt-3">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="タナカ タロウ">
@@ -238,6 +242,12 @@ isMobilePhoneJP("090-1234-5678")
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="&#x3000;">
                       空白だけの例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="ガ">
+                      ガ（合成済み）
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="カ&#x3099;">
+                      カ＋結合濁点
                     </button>
                   </div>
                 </div>
@@ -384,7 +394,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v1.3.0 の判定関数</p>
+              <p class="muted mb-0">v1.4.0 の判定関数</p>
             </div>
           </div>
 
@@ -465,8 +475,8 @@ isMobilePhoneJP("090-1234-5678")
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                   <h3 class="h5 fw-bold">isFurigana</h3>
-                  <p class="muted">全角カタカナを1文字以上含む氏名のフリガナを判定します。</p>
-                  <code>ジョー・ヤマダ</code>
+                  <p class="muted">全角カタカナを1文字以上含むフリガナを判定します。NFC で濁点・半濁点を合成できます。</p>
+                  <code>{ normalization: "NFC" }</code>
                 </div>
               </div>
             </div>
@@ -522,11 +532,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@1.3.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@1.4.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@1.3.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@1.4.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -534,7 +544,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.3.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.4.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -684,6 +694,7 @@ isStrictPhoneNumberJP(value)
       })
 
       const furiganaInput = document.getElementById("furiganaInput")
+      const furiganaUseNfc = document.getElementById("furiganaUseNfc")
       const furiganaFeedback = document.getElementById("furiganaFeedback")
       const furiganaMessages = {
         empty: "フリガナを入力してください。",
@@ -692,13 +703,16 @@ isStrictPhoneNumberJP(value)
       }
 
       function renderFuriganaFeedback() {
-        const result = validateFurigana(furiganaInput.value)
+        const result = validateFurigana(furiganaInput.value, {
+          normalization: furiganaUseNfc.checked ? "NFC" : "none",
+        })
         furiganaFeedback.textContent = result.ok
           ? "このフリガナを受け付けられます。"
           : furiganaMessages[result.reason]
       }
 
       furiganaInput.addEventListener("input", renderFuriganaFeedback)
+      furiganaUseNfc.addEventListener("change", renderFuriganaFeedback)
       renderFuriganaFeedback()
 
       document.querySelectorAll("[data-furigana-example]").forEach((button) => {

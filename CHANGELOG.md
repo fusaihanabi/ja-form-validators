@@ -1,5 +1,10 @@
 # 変更履歴
 
+## 1.4.0
+
+- `validateFurigana` と `isFurigana` に `FuriganaOptions.normalization` を追加しました。`"NFC"` を指定すると判定時に濁点・半濁点を合成し、`カ\u3099` や `ハ\u309A` を受け付けます。
+- 既定値は `"none"` です。判定できる文字範囲と理由コードは `1.3.0` と共通です。
+
 ## 1.3.0
 
 - `isZenkaku` と `validateZenkaku` に `rejectControlCharacters` を追加しました。`true` を指定すると、タブや改行を含む `U+0000`〜`U+001F` と `U+007F`〜`U+009F` を弾きます。`validateZenkaku` は既存の理由に該当しない場合に `control_character` を返します。

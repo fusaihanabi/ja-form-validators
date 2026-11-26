@@ -1,4 +1,5 @@
 import {
+  isFurigana,
   isMobilePhoneJP,
   isZenkaku,
   validateFurigana,
@@ -6,6 +7,7 @@ import {
   validateStrictPhoneNumberJP,
   validateZenkaku,
   type FuriganaFailureReason,
+  type FuriganaOptions,
   type PhoneNumberKindMatching,
   type PostalCodeFailureReason,
   type StrictPhoneNumberFailureReason,
@@ -41,6 +43,15 @@ const phoneReason: StrictPhoneNumberFailureReason = invalidPhone.reason
 const furiganaReason: FuriganaFailureReason = invalidFurigana.reason
 if (postalReason !== "invalid_length" || phoneReason !== "kind_not_allowed" || furiganaReason !== "invalid_character") {
   throw new Error("Unexpected field validation reasons")
+}
+
+const furiganaOptions: FuriganaOptions = { normalization: "NFC" }
+const kanaWithCombiningMark = "カ\u3099"
+if (!validateFurigana(kanaWithCombiningMark, furiganaOptions).ok || !isFurigana(kanaWithCombiningMark, furiganaOptions)) {
+  throw new Error("Expected both furigana validators to accept the combining mark with NFC")
+}
+if (validateFurigana(kanaWithCombiningMark).ok || isFurigana(kanaWithCombiningMark)) {
+  throw new Error("Expected the default furigana validators to keep the original behavior")
 }
 
 const mobileOnly = { kinds: ["mobile"] } as const
