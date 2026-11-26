@@ -8,7 +8,7 @@ Tiny TypeScript validators for Japanese form inputs.
 - 固定電話・携帯電話・IP電話・フリーダイヤルの厳密な形式（固定電話と携帯電話は `+81` 表記にも対応）
 - 全角カタカナ
 - 氏名欄向けのフリガナ
-- 表示可能な半角 ASCII と、設定に応じた半角カタカナの有無
+- 表示可能な半角 ASCII と、設定に応じた半角カタカナ・制御文字の有無
 
 ## Install
 
@@ -323,20 +323,21 @@ validateFurigana("ﾀﾅｶ")          // { ok: false, reason: "invalid_characte
 
 許可する文字は `ァ`〜`ヶ`、長音符 `ー`、中黒 `・`、半角・全角スペースです。合成済みの `ガ` は通り、`カ\u3099`（`カ` と結合濁点）は `invalid_character` になります。表記ゆれを受け付ける場合は判定前に正規化してください。`isFurigana` は同じ判定結果の `ok` を返します。
 
-### `isZenkaku(value: string, options?: ZenkakuOptions): boolean`
+### `isZenkaku(value: string, options?: ZenkakuOptions<boolean>): boolean`
 
-空文字、または表示可能な半角 ASCII（半角スペース、英数字、記号を含む）が入った文字列に `false` を返します。`rejectHalfwidthKana: true` を指定すると、半角カタカナも弾きます。既定値の `false` では半角カタカナが通ります。
+空文字、または表示可能な半角 ASCII（半角スペース、英数字、記号を含む）が入った文字列に `false` を返します。`rejectHalfwidthKana: true` を指定すると半角カタカナも、`rejectControlCharacters: true` を指定するとタブや改行などの制御文字も弾きます。どちらの設定も既定値は `false` です。
 
 ```ts
 isZenkaku("山田太郎") // true
 isZenkaku("山田Taro") // false
 isZenkaku("ﾀﾅｶ") // true
 isZenkaku("ﾀﾅｶ", { rejectHalfwidthKana: true }) // false
+isZenkaku("山田\t太郎", { rejectControlCharacters: true }) // false
 ```
 
 ### 理由付きの判定 `validateZenkaku`
 
-`isZenkaku` と同じ `ZenkakuOptions` を使います。成功時は `{ ok: true }`、失敗時は `{ ok: false, reason }` を返します。戻り値の型は `ZenkakuResult`、理由コードの型は `ZenkakuFailureReason` です。`isZenkaku` はこの判定結果の `ok` を返します。
+`isZenkaku` と同じ設定を使います。成功時は `{ ok: true }`、失敗時は `{ ok: false, reason }` を返します。戻り値の型は `ZenkakuResult`、理由コードの型は `ZenkakuFailureReason` です。`isZenkaku` はこの判定結果の `ok` を返します。
 
 理由は上から順に判定します。
 
@@ -345,12 +346,23 @@ isZenkaku("ﾀﾅｶ", { rejectHalfwidthKana: true }) // false
 | `empty` | 空文字 | 文字を入力してください。 |
 | `printable_ascii` | 半角スペースを含む表示可能な ASCII（`U+0020`〜`U+007E`）がある | 半角英数字・記号・スペースを全角にしてください。 |
 | `halfwidth_kana` | `rejectHalfwidthKana: true` で、半角カタカナ・長音符・濁点・半濁点（`U+FF66`〜`U+FF9F`）がある | カタカナを全角にしてください。 |
+| `control_character` | `rejectControlCharacters: true` で、制御文字（`U+0000`〜`U+001F`、`U+007F`〜`U+009F`）がある | タブや改行などの制御文字を削除してください。 |
 
 | 入力 | 既定の判定 | `rejectHalfwidthKana: true` |
 | --- | --- | --- |
 | `山田Taroﾀﾅｶ` | `printable_ascii` | `printable_ascii` |
 | `ﾀﾅｶ`、`ｶﾞ`、`ｰ` | 成功 | `halfwidth_kana` |
 | 全角スペース、`🙂`、半角中黒の `･` | 成功 | 成功 |
+
+```ts
+validateZenkaku("山田\n太郎", { rejectControlCharacters: true })
+// { ok: false, reason: "control_character" }
+
+validateZenkaku("山田Taro\n", { rejectControlCharacters: true })
+// { ok: false, reason: "printable_ascii" }
+```
+
+型引数を省略した `ZenkakuOptions`、`ZenkakuResult`、`ZenkakuFailureReason` は、制御文字の拒否を無効にした場合の型です。有効にする設定を型注釈で指定する場合は `ZenkakuOptions<true>`、真偽値で切り替える場合は `ZenkakuOptions<boolean>` を使います。呼び出し時に設定を書くと、`validateZenkaku` はそこから戻り値の型を推論します。
 
 ## Works great with normalize-ja-input
 

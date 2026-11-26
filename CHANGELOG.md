@@ -1,5 +1,10 @@
 # 変更履歴
 
+## 1.3.0
+
+- `isZenkaku` と `validateZenkaku` に `rejectControlCharacters` を追加しました。`true` を指定すると、タブや改行を含む `U+0000`〜`U+001F` と `U+007F`〜`U+009F` を弾きます。`validateZenkaku` は既存の理由に該当しない場合に `control_character` を返します。
+- オプション省略時は `1.2.0` と同じ結果を返します。TypeScript では、制御文字の拒否を有効にできる設定で `control_character` が戻り値の型に含まれます。
+
 ## 1.2.0
 
 - `isZenkaku` に `rejectHalfwidthKana` を追加しました。`true` を指定すると `U+FF66`〜`U+FF9F` の半角カタカナ・長音符・濁点・半濁点を弾きます。省略時の判定は `1.1.0` と同じです。

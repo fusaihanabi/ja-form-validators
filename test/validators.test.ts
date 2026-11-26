@@ -449,3 +449,43 @@ describe("validateZenkaku", () => {
     expect(isZenkaku(value, options)).toBe(false)
   })
 })
+
+describe("Zenkaku control character rejection", () => {
+  const options = { rejectControlCharacters: true } as const
+
+  it.each([
+    "\u0000", "\u001F", "\u007F", "\u0080", "\u009F",
+    "山田\t太郎", "山田\n太郎", "山田\r太郎",
+  ])("rejects %j only when control characters are disallowed", (value) => {
+    expect(validateZenkaku(value)).toEqual({ ok: true })
+    expect(validateZenkaku(value, { rejectControlCharacters: false })).toEqual({ ok: true })
+    expect(validateZenkaku(value, options)).toEqual({ ok: false, reason: "control_character" })
+    expect(isZenkaku(value)).toBe(true)
+    expect(isZenkaku(value, options)).toBe(false)
+  })
+
+  it.each(["山田　太郎", "\u00A0", "\u2028", "🙂"])(
+    "allows %j outside the control character ranges",
+    (value) => {
+      expect(validateZenkaku(value, options)).toEqual({ ok: true })
+      expect(isZenkaku(value, options)).toBe(true)
+    },
+  )
+
+  it.each([
+    ["", "empty"],
+    [" \n", "printable_ascii"],
+    ["~\u007F", "printable_ascii"],
+    ["山田Taroﾀﾅｶ\n", "printable_ascii"],
+    ["ﾀﾅｶ\n", "halfwidth_kana"],
+    ["山田太郎\n", "control_character"],
+  ] as const)("reports the first applicable reason for %j", (value, reason) => {
+    const allOptions = { ...options, rejectHalfwidthKana: true }
+    expect(validateZenkaku(value, allOptions)).toEqual({ ok: false, reason })
+    expect(isZenkaku(value, allOptions)).toBe(false)
+  })
+
+  it("checks control characters even when halfwidth kana are allowed", () => {
+    expect(validateZenkaku("ﾀﾅｶ\n", options)).toEqual({ ok: false, reason: "control_character" })
+  })
+})

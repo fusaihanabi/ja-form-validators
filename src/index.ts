@@ -159,28 +159,42 @@ export function isFurigana(value: string): boolean {
   return validateFurigana(value).ok
 }
 
-export interface ZenkakuOptions {
+export interface ZenkakuOptions<RejectControlCharacters extends boolean = false> {
   rejectHalfwidthKana?: boolean
+  rejectControlCharacters?: RejectControlCharacters
 }
 
-export type ZenkakuFailureReason = "empty" | "printable_ascii" | "halfwidth_kana"
+export type ZenkakuFailureReason<RejectControlCharacters extends boolean = false> =
+  | "empty"
+  | "printable_ascii"
+  | "halfwidth_kana"
+  | (true extends RejectControlCharacters ? "control_character" : never)
 
-export type ZenkakuResult =
+export type ZenkakuResult<RejectControlCharacters extends boolean = false> =
   | { ok: true }
-  | { ok: false; reason: ZenkakuFailureReason }
+  | { ok: false; reason: ZenkakuFailureReason<RejectControlCharacters> }
 
+export function validateZenkaku<RejectControlCharacters extends boolean = false>(
+  value: string,
+  options?: ZenkakuOptions<RejectControlCharacters>,
+): ZenkakuResult<RejectControlCharacters>
+// Keep the default result type for existing consumers of ReturnType<typeof validateZenkaku>.
+export function validateZenkaku(value: string, options?: ZenkakuOptions): ZenkakuResult
 export function validateZenkaku(
   value: string,
-  { rejectHalfwidthKana = false }: ZenkakuOptions = {},
-): ZenkakuResult {
+  { rejectHalfwidthKana = false, rejectControlCharacters = false }: ZenkakuOptions<boolean> = {},
+): ZenkakuResult<boolean> {
   if (value.length === 0) return { ok: false, reason: "empty" }
   if (/[ -~]/.test(value)) return { ok: false, reason: "printable_ascii" }
   if (rejectHalfwidthKana && /[\uFF66-\uFF9F]/.test(value)) {
     return { ok: false, reason: "halfwidth_kana" }
   }
+  if (rejectControlCharacters && /[\u0000-\u001F\u007F-\u009F]/.test(value)) {
+    return { ok: false, reason: "control_character" }
+  }
   return { ok: true }
 }
 
-export function isZenkaku(value: string, options?: ZenkakuOptions): boolean {
+export function isZenkaku(value: string, options?: ZenkakuOptions<boolean>): boolean {
   return validateZenkaku(value, options).ok
 }

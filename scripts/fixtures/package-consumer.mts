@@ -65,6 +65,39 @@ const zenkakuOptions: ZenkakuOptions = { rejectHalfwidthKana: true }
 const halfwidthKana: ZenkakuResult = validateZenkaku("ﾀﾅｶ", zenkakuOptions)
 if (halfwidthKana.ok) throw new Error("Expected halfwidth kana to be rejected by the option")
 const zenkakuReason: ZenkakuFailureReason = halfwidthKana.reason
+type LegacyZenkakuResult = ReturnType<typeof validateZenkaku>
+const legacyZenkakuMessages: Record<Extract<LegacyZenkakuResult, { ok: false }>["reason"], string> = {
+  empty: "Enter a value",
+  printable_ascii: "Enter fullwidth text",
+  halfwidth_kana: "Enter fullwidth kana",
+}
 if (zenkakuReason !== "halfwidth_kana" || isZenkaku("ﾀﾅｶ", zenkakuOptions) || !isZenkaku("ﾀﾅｶ")) {
   throw new Error("Unexpected result for the halfwidth kana option")
 }
+if (legacyZenkakuMessages[zenkakuReason] !== "Enter fullwidth kana") {
+  throw new Error("Expected the legacy reason to select a message")
+}
+
+const defaultZenkaku: ZenkakuResult = validateZenkaku("山田\t太郎")
+const controlsAllowed: ZenkakuResult = validateZenkaku("山田\t太郎", { rejectControlCharacters: false })
+if (!defaultZenkaku.ok || !controlsAllowed.ok) {
+  throw new Error("Expected legacy matching to allow control characters")
+}
+
+const controlsRejected = validateZenkaku("山田\t太郎", { rejectControlCharacters: true })
+if (controlsRejected.ok || controlsRejected.reason !== "control_character") {
+  throw new Error("Expected control character rejection when enabled")
+}
+
+function checkControlOption(rejectControlCharacters: boolean) {
+  const options: ZenkakuOptions<boolean> = { rejectControlCharacters }
+  const result = validateZenkaku("山田\n太郎", options)
+  const expectedOk = !rejectControlCharacters
+  if (result.ok !== expectedOk || (!result.ok && result.reason !== "control_character")) {
+    throw new Error("Expected control character rejection to follow the provided option")
+  }
+  if (isZenkaku("山田\n太郎", options) !== result.ok) throw new Error("Expected the validators to agree")
+}
+
+checkControlOption(false)
+checkControlOption(true)

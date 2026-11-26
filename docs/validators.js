@@ -99,13 +99,16 @@ export function validateFurigana(value) {
 export function isFurigana(value) {
     return validateFurigana(value).ok;
 }
-export function validateZenkaku(value, { rejectHalfwidthKana = false } = {}) {
+export function validateZenkaku(value, { rejectHalfwidthKana = false, rejectControlCharacters = false } = {}) {
     if (value.length === 0)
         return { ok: false, reason: "empty" };
     if (/[ -~]/.test(value))
         return { ok: false, reason: "printable_ascii" };
     if (rejectHalfwidthKana && /[\uFF66-\uFF9F]/.test(value)) {
         return { ok: false, reason: "halfwidth_kana" };
+    }
+    if (rejectControlCharacters && /[\u0000-\u001F\u007F-\u009F]/.test(value)) {
+        return { ok: false, reason: "control_character" };
     }
     return { ok: true };
 }
