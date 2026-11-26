@@ -1,5 +1,10 @@
 # 変更履歴
 
+## 1.7.0
+
+- `validateStrictPhoneNumberJP` に `includeDetails` を追加しました。同じフォーム設定で修正候補が通る場合、`+81` の後の国内用の `0` や不足したハイフンについて、`invalid_format` に詳細コードを添えます。省略時は従来の結果形式です。
+- 電話番号デモに、詳細コードに応じた日本語の案内と入力例を追加しました。
+
 ## 1.6.0
 
 - `validatePostalCodeJP` に `includeDetails` を追加しました。有効にすると、桁数のエラーでは `digitCount` を、文字やハイフンのエラーでは `index` と `character` を返します。省略時は従来の結果形式です。

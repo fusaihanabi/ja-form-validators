@@ -13,7 +13,9 @@ import {
   type PostalCodeResult,
   type PostalCodeValidationOptions,
   type StrictPhoneNumberFailureReason,
+  type StrictPhoneNumberFormatDetail,
   type StrictPhoneNumberOptions,
+  type StrictPhoneNumberValidationOptions,
   type ZenkakuFailureReason,
   type ZenkakuOptions,
   type ZenkakuResult,
@@ -46,6 +48,23 @@ const phoneReason: StrictPhoneNumberFailureReason = invalidPhone.reason
 const furiganaReason: FuriganaFailureReason = invalidFurigana.reason
 if (postalReason !== "invalid_length" || phoneReason !== "kind_not_allowed" || furiganaReason !== "invalid_character") {
   throw new Error("Unexpected field validation reasons")
+}
+
+const detailedPhoneOptions = {
+  ...phoneOptions,
+  includeDetails: true,
+} as const satisfies StrictPhoneNumberValidationOptions
+const phoneWithDetail = validateStrictPhoneNumberJP("+81-03-1234-5678", detailedPhoneOptions)
+if (phoneWithDetail.ok || phoneWithDetail.reason !== "invalid_format") {
+  throw new Error("Expected an invalid phone format")
+}
+const phoneDetail: StrictPhoneNumberFormatDetail | undefined = phoneWithDetail.detail
+if (phoneDetail !== "domestic_trunk_prefix") throw new Error("Expected a domestic prefix detail")
+
+const phoneWithoutDetail: ReturnType<typeof validateStrictPhoneNumberJP> =
+  validateStrictPhoneNumberJP("+81-03-1234-5678", phoneOptions)
+if (phoneWithoutDetail.ok || phoneWithoutDetail.reason !== "invalid_format" || "detail" in phoneWithoutDetail) {
+  throw new Error("Expected the legacy phone format result")
 }
 
 const postalOptions = { includeDetails: true } as const satisfies PostalCodeValidationOptions

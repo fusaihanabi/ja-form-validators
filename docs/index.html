@@ -209,6 +209,14 @@ isMobilePhoneJP("090-1234-5678")
                       +81 表記の例
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-secondary"
+                      data-phone-example="+81-03-1234-5678" data-phone-kinds="landline-and-mobile" data-phone-format="either">
+                      +81 の後に 0 がある例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                      data-phone-example="090-12345678" data-phone-kinds="mobile" data-phone-format="domestic">
+                      ハイフンが足りない例
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
                       data-phone-example="060-1234-5678" data-phone-kinds="mobile" data-phone-format="domestic">
                       060 携帯番号の例
                     </button>
@@ -402,7 +410,7 @@ isMobilePhoneJP("090-1234-5678")
           <div class="row justify-content-center mb-4">
             <div class="col-lg-8 text-center">
               <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v1.6.0 の判定関数</p>
+              <p class="muted mb-0">v1.7.0 の判定関数</p>
             </div>
           </div>
 
@@ -456,7 +464,7 @@ isMobilePhoneJP("090-1234-5678")
               <div class="card h-100 border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
                   <h3 class="h5 fw-bold text-break">validateStrictPhoneNumberJP</h3>
-                  <p class="muted">電話番号を判定し、フォームの案内に使える理由コードを返します。</p>
+                  <p class="muted">理由コードと、設定に応じて形式を直す手がかりを返します。</p>
                   <code>{ ok: false, reason: "format_not_allowed" }</code>
                 </div>
               </div>
@@ -540,11 +548,11 @@ isMobilePhoneJP("090-1234-5678")
               <div class="mb-3">
                 <div class="d-flex gap-2">
                   <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@1.6.0/dist/index.js</code>
+                    <code>https://unpkg.com/ja-form-validators@1.7.0/dist/index.js</code>
                   </div>
                   <button
                     class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@1.6.0/dist/index.js"
+                    data-copy="https://unpkg.com/ja-form-validators@1.7.0/dist/index.js"
                   >
                     Copy
                   </button>
@@ -552,7 +560,7 @@ isMobilePhoneJP("090-1234-5678")
               </div>
               <div class="code-block">
 <pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.6.0/dist/index.js"
+  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.7.0/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
@@ -656,6 +664,11 @@ isStrictPhoneNumberJP(value)
         }
       }
 
+      const contactDetailMessages = {
+        domestic_trunk_prefix: "+81 の後は国内用の先頭の 0 を省いてください。",
+        partial_separator: "ハイフンをすべて入れるか、すべて省略してください。",
+      }
+
       function renderContactFeedback(value) {
         const format = contactFormat.value
         const mobileOnly = contactKinds.value === "mobile"
@@ -663,7 +676,12 @@ isStrictPhoneNumberJP(value)
           kinds: mobileOnly ? ["mobile"] : ["landline", "mobile"],
           format,
           kindMatching: contactKindMatching.value,
+          includeDetails: true,
         })
+        if (!result.ok && result.reason === "invalid_format" && result.detail) {
+          contactFeedback.textContent = contactDetailMessages[result.detail]
+          return
+        }
         contactFeedback.textContent = result.ok
           ? "この電話番号を受け付けられます。"
           : contactMessages(format, mobileOnly)[result.reason]

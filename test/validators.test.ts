@@ -261,6 +261,70 @@ describe("validateStrictPhoneNumberJP", () => {
   })
 })
 
+describe("strict phone number format details", () => {
+  const options = { format: "either", includeDetails: true, kinds: ["landline", "mobile", "ip", "tollFree"] } as const
+  const invalidFormat = { ok: false, reason: "invalid_format" }
+
+  it.each(["+81-03-1234-5678", "+810312345678", "+81-060-1234-5678"])(
+    "recognizes an extra domestic prefix in %s",
+    (value) => {
+      expect(validateStrictPhoneNumberJP(value, options)).toEqual({
+        ...invalidFormat, detail: "domestic_trunk_prefix",
+      })
+    },
+  )
+
+  it.each([
+    "090-12345678", "0901234-5678", "011-2345678", "0120-123456", "0800-1234567", "0501234-5678",
+    "+813-1234-5678", "+81-3-12345678", "+81-9012345678", "+81601234-5678",
+  ])("recognizes missing separators in %s", (value) => {
+    expect(validateStrictPhoneNumberJP(value, options)).toEqual({
+      ...invalidFormat, detail: "partial_separator",
+    })
+    expect(isStrictPhoneNumberJP(value, options)).toBe(false)
+  })
+
+  it.each([
+    "09012-345678", "090--1234-5678", "090-1234-5678-", "090 12345678",
+    "080-0123-4567", "+81-800-1234567", "+81-090-12345678", "+81-0060-1234-5678",
+  ])("keeps a general format error for %s", (value) => {
+    expect(validateStrictPhoneNumberJP(value, options)).toEqual(invalidFormat)
+  })
+
+  it("uses the allowed kinds and formats when checking a repair", () => {
+    expect(validateStrictPhoneNumberJP("+81-03-1234-5678", { ...options, kinds: ["mobile"] })).toEqual(invalidFormat)
+    expect(validateStrictPhoneNumberJP("+81-03-1234-5678", { ...options, format: "domestic" })).toEqual(invalidFormat)
+    expect(validateStrictPhoneNumberJP("+813-1234-5678", { ...options, format: "domestic" })).toEqual(invalidFormat)
+    expect(validateStrictPhoneNumberJP("090-12345678", { ...options, kinds: ["landline"] })).toEqual(invalidFormat)
+  })
+
+  it("follows kindMatching for an 0800 number with one separator", () => {
+    const mobileOnly = { ...options, kinds: ["mobile"] } as const
+    expect(validateStrictPhoneNumberJP("0800123-4567", mobileOnly)).toEqual(invalidFormat)
+    expect(validateStrictPhoneNumberJP("0800123-4567", { ...mobileOnly, kindMatching: "compatible" })).toEqual({
+      ...invalidFormat, detail: "partial_separator",
+    })
+    expect(validateStrictPhoneNumberJP("0800123-4567", { ...options, kinds: ["tollFree"] })).toEqual({
+      ...invalidFormat, detail: "partial_separator",
+    })
+  })
+
+  it("adds details only to invalid format results when enabled", () => {
+    expect(validateStrictPhoneNumberJP("090-12345678")).toEqual(invalidFormat)
+    expect(validateStrictPhoneNumberJP("090-12345678", { ...options, includeDetails: false })).toEqual(invalidFormat)
+    expect(validateStrictPhoneNumberJP("", options)).toEqual({ ok: false, reason: "empty" })
+    expect(validateStrictPhoneNumberJP("09012345678", { ...options, kinds: ["landline"] })).toEqual({
+      ok: false, reason: "kind_not_allowed",
+    })
+    expect(validateStrictPhoneNumberJP("+819012345678", { ...options, format: "domestic" })).toEqual({
+      ok: false, reason: "format_not_allowed",
+    })
+    expect(validateStrictPhoneNumberJP("090-1234-5678", options)).toEqual({
+      ok: true, kind: "mobile", format: "domestic",
+    })
+  })
+})
+
 describe("phone number kind matching", () => {
   const mobileOnly = { kinds: ["mobile"], format: "either" } as const
   const bothKinds = { kinds: ["mobile", "tollFree"], format: "either" } as const

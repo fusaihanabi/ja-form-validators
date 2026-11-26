@@ -269,6 +269,29 @@ validateStrictPhoneNumberJP("+81-3-1234-5678", options)
 
 成功結果の `format` は `"domestic"` または `"international"` です。`isStrictPhoneNumberJP` は同じ判定結果の `ok` を返します。
 
+#### 電話番号の形式を直す手がかりを取得する
+
+`validateStrictPhoneNumberJP` に `includeDetails: true` を指定すると、`invalid_format` のうち修正方法を特定できる場合に `detail` が付きます。
+
+| `detail` | 条件 |
+| --- | --- |
+| `domestic_trunk_prefix` | `+81` の後の国内用の `0` を1つ除くと判定を通る |
+| `partial_separator` | 所定の位置の一部にだけハイフンがあり、足りないハイフンを補うと判定を通る |
+
+```ts
+const options = { kinds: ["landline", "mobile"], format: "either", includeDetails: true } as const
+
+validateStrictPhoneNumberJP("+81-03-1234-5678", options)
+// { ok: false, reason: "invalid_format", detail: "domestic_trunk_prefix" }
+
+validateStrictPhoneNumberJP("090-12345678", options)
+// { ok: false, reason: "invalid_format", detail: "partial_separator" }
+```
+
+修正候補には、同じ `kinds`・`format`・`kindMatching` を適用します。携帯専用欄の `+81-03-1234-5678` は `0` を省いても固定電話なので、一般的な形式エラーを返します。`09012-345678` のようにハイフンの位置が違う入力も同様です。国内表記・国際表記のどちらでも、所定の位置で不足しているハイフンを検出できます。
+
+設定型は `StrictPhoneNumberValidationOptions`、詳細コードの型は `StrictPhoneNumberFormatDetail` です。`includeDetails: true` の戻り値は `StrictPhoneNumberResult<true>` で、`reason` が `invalid_format` の場合に任意の `detail` を読めます。省略時は従来の結果形式です。
+
 ### 番号の種類を先に確定する `kindMatching`
 
 `validateStrictPhoneNumberJP` と `isStrictPhoneNumberJP` の両方で、`StrictPhoneNumberOptions.kindMatching` に次の値を指定できます。

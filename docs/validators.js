@@ -75,7 +75,7 @@ function matchingPhoneNumberKinds(domesticNumber, possibleKinds, kindMatching) {
     }
     return possibleKinds.filter((kind) => strictPhoneValidators[kind](domesticNumber));
 }
-export function validateStrictPhoneNumberJP(value, { kinds = defaultPhoneNumberKinds, format = "domestic", kindMatching = "specific", } = {}) {
+function checkStrictPhoneNumber(value, { kinds = defaultPhoneNumberKinds, format = "domestic", kindMatching = "specific", } = {}) {
     if (value === "")
         return { ok: false, reason: "empty" };
     const inputFormat = value.startsWith("+") ? "international" : "domestic";
@@ -93,8 +93,63 @@ export function validateStrictPhoneNumberJP(value, { kinds = defaultPhoneNumberK
         return { ok: false, reason: "format_not_allowed" };
     return { ok: true, kind, format: inputFormat };
 }
+function hasMissingPhoneSeparators(value, options) {
+    if (!/^\+?\d+(?:-\d+)+$/.test(value))
+        return false;
+    const international = value.startsWith("+");
+    const groups = value.split("-");
+    if (groups.length >= (international ? 4 : 3))
+        return false;
+    const unhyphenated = groups.join("");
+    if (!checkStrictPhoneNumber(unhyphenated, options).ok)
+        return false;
+    const existingSeparators = [];
+    let offset = 0;
+    for (const group of groups.slice(0, -1)) {
+        offset += group.length;
+        existingSeparators.push(offset);
+    }
+    const countryCodeEnd = international ? "+81".length : 0;
+    const countryCode = international ? "+81-" : "";
+    const areaLengths = international ? [1, 2, 3, 4] : [2, 3, 4, 5];
+    // Try the group sizes supported by the validators, preserving every supplied hyphen.
+    const subscriberLengths = international ? [4] : [3, 4];
+    for (const areaLength of areaLengths) {
+        const areaEnd = countryCodeEnd + areaLength;
+        for (const subscriberLength of subscriberLengths) {
+            const exchangeEnd = unhyphenated.length - subscriberLength;
+            const separators = international ? [countryCodeEnd, areaEnd, exchangeEnd] : [areaEnd, exchangeEnd];
+            if (!existingSeparators.every((position) => separators.includes(position)))
+                continue;
+            const candidate = countryCode + [
+                unhyphenated.slice(countryCodeEnd, areaEnd),
+                unhyphenated.slice(areaEnd, exchangeEnd),
+                unhyphenated.slice(exchangeEnd),
+            ].join("-");
+            if (checkStrictPhoneNumber(candidate, options).ok)
+                return true;
+        }
+    }
+    return false;
+}
+function strictPhoneNumberFormatDetail(value, options) {
+    const withoutTrunkPrefix = value.replace(/^(\+81-?)0/, "$1");
+    if (withoutTrunkPrefix !== value && checkStrictPhoneNumber(withoutTrunkPrefix, options).ok) {
+        return "domestic_trunk_prefix";
+    }
+    if (hasMissingPhoneSeparators(value, options))
+        return "partial_separator";
+    return undefined;
+}
+export function validateStrictPhoneNumberJP(value, options = {}) {
+    const result = checkStrictPhoneNumber(value, options);
+    if (!options.includeDetails || result.ok || result.reason !== "invalid_format")
+        return result;
+    const detail = strictPhoneNumberFormatDetail(value, options);
+    return detail ? { ...result, detail } : result;
+}
 export function isStrictPhoneNumberJP(value, options = {}) {
-    return validateStrictPhoneNumberJP(value, options).ok;
+    return checkStrictPhoneNumber(value, options).ok;
 }
 export function isKatakana(value) {
     return /^[ァ-ヶー・\s　]+$/.test(value);

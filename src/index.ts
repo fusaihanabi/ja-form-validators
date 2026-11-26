@@ -100,15 +100,25 @@ export interface StrictPhoneNumberOptions {
   kindMatching?: PhoneNumberKindMatching
 }
 
+export interface StrictPhoneNumberValidationOptions<IncludeDetails extends boolean = boolean>
+  extends StrictPhoneNumberOptions {
+  includeDetails?: IncludeDetails
+}
+
 export type StrictPhoneNumberFailureReason =
   | "empty"
   | "invalid_format"
   | "kind_not_allowed"
   | "format_not_allowed"
 
-export type StrictPhoneNumberResult =
+export type StrictPhoneNumberFormatDetail = "domestic_trunk_prefix" | "partial_separator"
+
+export type StrictPhoneNumberResult<IncludeDetails extends boolean = false> =
   | { ok: true; kind: PhoneNumberKind; format: Exclude<PhoneNumberFormat, "either"> }
-  | { ok: false; reason: StrictPhoneNumberFailureReason }
+  | (true extends IncludeDetails
+    ? { ok: false; reason: "invalid_format"; detail?: StrictPhoneNumberFormatDetail }
+      | { ok: false; reason: Exclude<StrictPhoneNumberFailureReason, "invalid_format"> }
+    : { ok: false; reason: StrictPhoneNumberFailureReason })
 
 const strictPhoneValidators: Record<PhoneNumberKind, (value: string) => boolean> = {
   landline: isLandlinePhoneJP,
@@ -148,7 +158,7 @@ function matchingPhoneNumberKinds(
   return possibleKinds.filter((kind) => strictPhoneValidators[kind](domesticNumber))
 }
 
-export function validateStrictPhoneNumberJP(
+function checkStrictPhoneNumber(
   value: string,
   {
     kinds = defaultPhoneNumberKinds,
@@ -174,11 +184,82 @@ export function validateStrictPhoneNumberJP(
   return { ok: true, kind, format: inputFormat }
 }
 
+function hasMissingPhoneSeparators(value: string, options: StrictPhoneNumberOptions): boolean {
+  if (!/^\+?\d+(?:-\d+)+$/.test(value)) return false
+
+  const international = value.startsWith("+")
+  const groups = value.split("-")
+  if (groups.length >= (international ? 4 : 3)) return false
+
+  const unhyphenated = groups.join("")
+  if (!checkStrictPhoneNumber(unhyphenated, options).ok) return false
+
+  const existingSeparators: number[] = []
+  let offset = 0
+  for (const group of groups.slice(0, -1)) {
+    offset += group.length
+    existingSeparators.push(offset)
+  }
+
+  const countryCodeEnd = international ? "+81".length : 0
+  const countryCode = international ? "+81-" : ""
+  const areaLengths = international ? [1, 2, 3, 4] : [2, 3, 4, 5]
+  // Try the group sizes supported by the validators, preserving every supplied hyphen.
+  const subscriberLengths = international ? [4] : [3, 4]
+  for (const areaLength of areaLengths) {
+    const areaEnd = countryCodeEnd + areaLength
+    for (const subscriberLength of subscriberLengths) {
+      const exchangeEnd = unhyphenated.length - subscriberLength
+      const separators = international ? [countryCodeEnd, areaEnd, exchangeEnd] : [areaEnd, exchangeEnd]
+      if (!existingSeparators.every((position) => separators.includes(position))) continue
+
+      const candidate = countryCode + [
+        unhyphenated.slice(countryCodeEnd, areaEnd),
+        unhyphenated.slice(areaEnd, exchangeEnd),
+        unhyphenated.slice(exchangeEnd),
+      ].join("-")
+      if (checkStrictPhoneNumber(candidate, options).ok) return true
+    }
+  }
+  return false
+}
+
+function strictPhoneNumberFormatDetail(
+  value: string,
+  options: StrictPhoneNumberOptions,
+): StrictPhoneNumberFormatDetail | undefined {
+  const withoutTrunkPrefix = value.replace(/^(\+81-?)0/, "$1")
+  if (withoutTrunkPrefix !== value && checkStrictPhoneNumber(withoutTrunkPrefix, options).ok) {
+    return "domestic_trunk_prefix"
+  }
+  if (hasMissingPhoneSeparators(value, options)) return "partial_separator"
+  return undefined
+}
+
+export function validateStrictPhoneNumberJP<IncludeDetails extends boolean = false>(
+  value: string,
+  options?: StrictPhoneNumberValidationOptions<IncludeDetails>,
+): StrictPhoneNumberResult<IncludeDetails>
+export function validateStrictPhoneNumberJP(
+  value: string,
+  options?: StrictPhoneNumberOptions,
+): StrictPhoneNumberResult
+export function validateStrictPhoneNumberJP(
+  value: string,
+  options: StrictPhoneNumberValidationOptions = {},
+): StrictPhoneNumberResult<boolean> {
+  const result = checkStrictPhoneNumber(value, options)
+  if (!options.includeDetails || result.ok || result.reason !== "invalid_format") return result
+
+  const detail = strictPhoneNumberFormatDetail(value, options)
+  return detail ? { ...result, detail } : result
+}
+
 export function isStrictPhoneNumberJP(
   value: string,
   options: StrictPhoneNumberOptions = {},
 ): boolean {
-  return validateStrictPhoneNumberJP(value, options).ok
+  return checkStrictPhoneNumber(value, options).ok
 }
 
 export function isKatakana(value: string): boolean {
