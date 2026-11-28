@@ -8,108 +8,49 @@
       name="description"
       content="Tiny TypeScript validators for Japanese form inputs, including landline and mobile phone numbers, postal codes, and furigana."
     />
-    <link
-      href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --hero-bg: #f7f9fc;
-        --ink: #172033;
-        --muted: #667085;
-      }
-
-      body {
-        color: var(--ink);
-      }
-
-      .hero {
-        background:
-          radial-gradient(circle at top left, rgba(13, 110, 253, 0.12), transparent 32rem),
-          var(--hero-bg);
-      }
-
-      .badge-soft {
-        background: rgba(13, 110, 253, 0.1);
-        color: #0d6efd;
-      }
-
-      .code-block {
-        background: #101828;
-        color: #f8fafc;
-        border-radius: 1rem;
-        padding: 1rem;
-        overflow-x: auto;
-        font-size: 0.925rem;
-      }
-
-      .code-block code {
-        color: inherit;
-      }
-
-      .demo-result {
-        min-height: 3rem;
-      }
-
-      .muted {
-        color: var(--muted);
-      }
-
-      .feature-card {
-        height: 100%;
-      }
-
-      .copy-button {
-        white-space: nowrap;
-      }
-    </style>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
-      <div class="container py-2">
-        <a class="navbar-brand fw-bold" href="#">ja-form-validators</a>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <div class="container nav-inner">
+        <a class="site-brand" href="#">ja-form-validators</a>
         <button
-          class="navbar-toggler"
+          class="button nav-toggle"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
+          aria-controls="navLinks"
           aria-expanded="false"
-          aria-label="Toggle navigation"
+          hidden
         >
-          <span class="navbar-toggler-icon"></span>
+          メニュー
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto gap-lg-2">
-            <li class="nav-item"><a class="nav-link" href="#demo">Demo</a></li>
-            <li class="nav-item"><a class="nav-link" href="#form-demo">フォーム</a></li>
-            <li class="nav-item"><a class="nav-link" href="#install">Install</a></li>
-            <li class="nav-item"><a class="nav-link" href="#api">API</a></li>
-            <li class="nav-item"><a class="nav-link" href="#cdn">CDN</a></li>
-          </ul>
-        </div>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#demo">Demo</a></li>
+          <li><a href="#form-demo">フォーム</a></li>
+          <li><a href="#install">Install</a></li>
+          <li><a href="#api">API</a></li>
+          <li><a href="#cdn">CDN</a></li>
+          <li><a href="#related">関連ライブラリ</a></li>
+        </ul>
       </div>
     </nav>
 
-    <header class="hero py-5 py-lg-6">
-      <div class="container py-5">
-        <div class="row align-items-center g-5">
-          <div class="col-lg-7">
-            <span class="badge badge-soft rounded-pill px-3 py-2 mb-3">Dependency-free tiny validators</span>
-            <h1 class="display-4 fw-bold lh-1 mb-4">
-              Japanese form validation,<br class="d-none d-lg-block" /> made tiny.
+    <header class="hero">
+      <div class="container">
+        <div class="hero-layout">
+          <div>
+            <h1>
+              Japanese form validation, made tiny.
             </h1>
-            <p class="lead muted mb-4">
-              郵便番号、携帯電話番号、日本の電話番号っぽい形式、全角カタカナ、全角文字を判定する小さな TypeScript ライブラリです。
+            <p class="hero-intro">
+              郵便番号、電話番号、フリガナ、全角文字を判定する、依存ゼロの TypeScript ライブラリです。
             </p>
-            <div class="d-flex flex-column flex-sm-row gap-3">
-              <a href="#demo" class="btn btn-primary btn-lg">Try demo</a>
-              <a href="#install" class="btn btn-outline-secondary btn-lg">Install</a>
+            <div class="actions">
+              <a href="#demo" class="button button-primary">Try demo</a>
+              <a href="#install" class="button">Install</a>
             </div>
           </div>
-          <div class="col-lg-5">
-            <div class="code-block shadow-sm">
-<pre class="mb-0"><code>import {
+          <div class="code-block">
+<pre><code>import {
   isPostalCodeJP,
   isMobilePhoneJP,
 } from "ja-form-validators"
@@ -119,228 +60,203 @@ isPostalCodeJP("150-0001")
 
 isMobilePhoneJP("090-1234-5678")
 // true</code></pre>
-            </div>
           </div>
         </div>
       </div>
     </header>
 
     <main>
-      <section class="py-5 border-bottom">
+      <section class="section feature-section">
         <div class="container">
-          <div class="row g-4">
-            <div class="col-md-4">
-              <div class="card feature-card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h2 class="h5 fw-bold">Small scope</h2>
-                  <p class="muted mb-0">日本向けフォームでよく使う validator だけに絞っています。</p>
-                </div>
-              </div>
+          <div class="card-grid">
+            <div class="panel feature-panel">
+              <h2>Small scope</h2>
+              <p class="muted">日本向けフォームでよく使う validator だけに絞っています。</p>
             </div>
-            <div class="col-md-4">
-              <div class="card feature-card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h2 class="h5 fw-bold">No normalization</h2>
-                  <p class="muted mb-0">入力値は変換しません。判定だけを行うので責務が明確です。</p>
-                </div>
-              </div>
+            <div class="panel feature-panel">
+              <h2>No normalization</h2>
+              <p class="muted">入力値は変換しません。判定だけを行うので責務が明確です。</p>
             </div>
-            <div class="col-md-4">
-              <div class="card feature-card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h2 class="h5 fw-bold">TypeScript ready</h2>
-                  <p class="muted mb-0">TypeScript 対応。フロントエンドでもバックエンドでも使えます。</p>
-                </div>
-              </div>
+            <div class="panel feature-panel">
+              <h2>TypeScript ready</h2>
+              <p class="muted">TypeScript 対応。フロントエンドでもバックエンドでも使えます。</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="demo" class="py-5">
+      <section id="demo" class="section">
         <div class="container">
-          <div class="row justify-content-center mb-4">
-            <div class="col-lg-8 text-center">
-              <h2 class="fw-bold">Live demo</h2>
-              <p class="muted mb-0">入力値を変更すると、各 validator の結果がリアルタイムで変わります。</p>
-            </div>
+          <div class="section-heading">
+            <h2>Live demo</h2>
+            <p class="muted">入力値を変更すると、各 validator の結果がリアルタイムで変わります。</p>
           </div>
 
-          <div class="row g-4 align-items-start">
-            <div class="col-lg-5">
-              <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <label for="demoInput" class="form-label fw-semibold">Input</label>
-                  <input
-                    id="demoInput"
-                    class="form-control form-control-lg"
-                    value="090-1234-5678"
-                    placeholder="例: 03-1234-5678, 150-0001, タナカ"
-                  />
-                  <div class="mt-3">
-                    <label for="contactFormat" class="form-label">問い合わせ先で受け付ける表記</label>
-                    <select id="contactFormat" class="form-select">
-                      <option value="either">国内表記と +81 表記</option>
-                      <option value="domestic">国内表記のみ</option>
-                      <option value="international">+81 表記のみ</option>
+          <div class="demo-layout">
+            <div class="panel-stack">
+              <div class="panel">
+                <label for="demoInput" class="field-label">Input</label>
+                <input
+                  id="demoInput"
+                  class="field-control field-large"
+                  value="090-1234-5678"
+                  placeholder="例: 03-1234-5678, 150-0001, タナカ"
+                />
+                <div class="field-block">
+                  <label for="contactFormat" class="field-label">問い合わせ先で受け付ける表記</label>
+                  <select id="contactFormat" class="field-control">
+                    <option value="either">国内表記と +81 表記</option>
+                    <option value="domestic">国内表記のみ</option>
+                    <option value="international">+81 表記のみ</option>
+                  </select>
+                </div>
+                <div class="option-grid">
+                  <div>
+                    <label for="contactKinds" class="field-label">受け付ける番号</label>
+                    <select id="contactKinds" class="field-control">
+                      <option value="landline-and-mobile">固定・携帯</option>
+                      <option value="mobile">携帯のみ</option>
                     </select>
                   </div>
-                  <div class="row g-2 mt-2">
-                    <div class="col-sm-6">
-                      <label for="contactKinds" class="form-label">受け付ける番号</label>
-                      <select id="contactKinds" class="form-select">
-                        <option value="landline-and-mobile">固定・携帯</option>
-                        <option value="mobile">携帯のみ</option>
-                      </select>
-                    </div>
-                    <div class="col-sm-6">
-                      <label for="contactKindMatching" class="form-label">種類の判定方法</label>
-                      <select id="contactKindMatching" class="form-select">
-                        <option value="specific">種類を先に確定</option>
-                        <option value="compatible">従来の判定</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="d-flex flex-wrap gap-2 mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-phone-example="03-1234-5678">
-                      国内表記の例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-phone-example="+81-3-1234-5678">
-                      +81 表記の例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                      data-phone-example="+81-03-1234-5678" data-phone-kinds="landline-and-mobile" data-phone-format="either">
-                      +81 の後に 0 がある例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                      data-phone-example="090-12345678" data-phone-kinds="mobile" data-phone-format="domestic">
-                      ハイフンが足りない例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                      data-phone-example="060-1234-5678" data-phone-kinds="mobile" data-phone-format="domestic">
-                      060 携帯番号の例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                      data-phone-example="08001234567" data-phone-kinds="mobile" data-phone-format="domestic">
-                      携帯専用欄で 0800 を試す
-                    </button>
+                  <div>
+                    <label for="contactKindMatching" class="field-label">種類の判定方法</label>
+                    <select id="contactKindMatching" class="field-control">
+                      <option value="specific">種類を先に確定</option>
+                      <option value="compatible">従来の判定</option>
+                    </select>
                   </div>
                 </div>
-              </div>
-              <div class="card border-0 shadow-sm rounded-4 mt-4">
-                <div class="card-body p-4">
-                  <label for="furiganaInput" class="form-label fw-semibold">氏名のフリガナ</label>
-                  <input
-                    id="furiganaInput"
-                    class="form-control"
-                    value="タナカ タロウ"
-                    aria-describedby="furiganaFeedback"
-                  />
-                  <div class="form-check mt-3">
-                    <input id="furiganaUseNfc" class="form-check-input" type="checkbox" />
-                    <label for="furiganaUseNfc" class="form-check-label">NFC で判定</label>
-                  </div>
-                  <p id="furiganaFeedback" class="mt-2 mb-0" role="status"></p>
-                  <div class="d-flex flex-wrap gap-2 mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="タナカ タロウ">
-                      全角カタカナの例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="ﾀﾅｶ">
-                      半角カタカナの例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="&#x3000;">
-                      空白だけの例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="ガ">
-                      ガ（合成済み）
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-furigana-example="カ&#x3099;">
-                      カ＋結合濁点
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div id="zenkaku-demo" class="card border-0 shadow-sm rounded-4 mt-4">
-                <div class="card-body p-4">
-                  <label for="zenkakuInput" class="form-label fw-semibold">全角欄の入力例</label>
-                  <textarea id="zenkakuInput" class="form-control" rows="2"
-                    aria-describedby="zenkakuFeedback">ﾀﾅｶ</textarea>
-                  <div class="form-check mt-3">
-                    <input id="zenkakuRejectKana" class="form-check-input" type="checkbox" />
-                    <label for="zenkakuRejectKana" class="form-check-label">半角カタカナも弾く</label>
-                  </div>
-                  <div class="form-check">
-                    <input id="zenkakuRejectControls" class="form-check-input" type="checkbox" />
-                    <label for="zenkakuRejectControls" class="form-check-label">制御文字も弾く</label>
-                  </div>
-                  <p id="zenkakuFeedback" class="mt-2 mb-0" role="status"></p>
-                  <button id="zenkakuSelectInvalid" type="button" class="btn btn-sm btn-outline-primary mt-2" disabled>
-                    該当文字を選択
+                <div class="actions suggestions">
+                  <button type="button" class="button button-small" data-phone-example="03-1234-5678">
+                    国内表記の例
                   </button>
-                  <div class="d-flex flex-wrap gap-2 mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="ﾀﾅｶ">
-                      半角カタカナ
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="山田Taro">
-                      半角英字
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="&#x3000;">
-                      全角スペース
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="🙂">
-                      絵文字
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="山田&#9;太郎">
-                      タブ入り
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-zenkaku-example="山田&#10;太郎">
-                      改行入り
-                    </button>
-                  </div>
+                  <button type="button" class="button button-small" data-phone-example="+81-3-1234-5678">
+                    +81 表記の例
+                  </button>
+                  <button type="button" class="button button-small"
+                    data-phone-example="+81-03-1234-5678" data-phone-kinds="landline-and-mobile" data-phone-format="either">
+                    +81 の後に 0 がある例
+                  </button>
+                  <button type="button" class="button button-small"
+                    data-phone-example="090-12345678" data-phone-kinds="mobile" data-phone-format="domestic">
+                    ハイフンが足りない例
+                  </button>
+                  <button type="button" class="button button-small"
+                    data-phone-example="060-1234-5678" data-phone-kinds="mobile" data-phone-format="domestic">
+                    060 携帯番号の例
+                  </button>
+                  <button type="button" class="button button-small"
+                    data-phone-example="08001234567" data-phone-kinds="mobile" data-phone-format="domestic">
+                    携帯専用欄で 0800 を試す
+                  </button>
+                </div>
+              </div>
+              <div class="panel">
+                <label for="furiganaInput" class="field-label">氏名のフリガナ</label>
+                <input
+                  id="furiganaInput"
+                  class="field-control"
+                  value="タナカ タロウ"
+                  aria-describedby="furiganaFeedback"
+                />
+                <div class="check-option first-check">
+                  <input id="furiganaUseNfc" type="checkbox" />
+                  <label for="furiganaUseNfc">NFC で判定</label>
+                </div>
+                <p id="furiganaFeedback" class="feedback" role="status"></p>
+                <div class="actions suggestions">
+                  <button type="button" class="button button-small" data-furigana-example="タナカ タロウ">
+                    全角カタカナの例
+                  </button>
+                  <button type="button" class="button button-small" data-furigana-example="ﾀﾅｶ">
+                    半角カタカナの例
+                  </button>
+                  <button type="button" class="button button-small" data-furigana-example="&#x3000;">
+                    空白だけの例
+                  </button>
+                  <button type="button" class="button button-small" data-furigana-example="ガ">
+                    ガ（合成済み）
+                  </button>
+                  <button type="button" class="button button-small" data-furigana-example="カ&#x3099;">
+                    カ＋結合濁点
+                  </button>
+                </div>
+              </div>
+              <div id="zenkaku-demo" class="panel">
+                <label for="zenkakuInput" class="field-label">全角欄の入力例</label>
+                <textarea id="zenkakuInput" class="field-control" rows="2"
+                  aria-describedby="zenkakuFeedback">ﾀﾅｶ</textarea>
+                <div class="check-option first-check">
+                  <input id="zenkakuRejectKana" type="checkbox" />
+                  <label for="zenkakuRejectKana">半角カタカナも弾く</label>
+                </div>
+                <div class="check-option">
+                  <input id="zenkakuRejectControls" type="checkbox" />
+                  <label for="zenkakuRejectControls">制御文字も弾く</label>
+                </div>
+                <p id="zenkakuFeedback" class="feedback" role="status"></p>
+                <button id="zenkakuSelectInvalid" type="button" class="button button-small button-outline feedback-action" disabled>
+                  該当文字を選択
+                </button>
+                <div class="actions suggestions">
+                  <button type="button" class="button button-small" data-zenkaku-example="ﾀﾅｶ">
+                    半角カタカナ
+                  </button>
+                  <button type="button" class="button button-small" data-zenkaku-example="山田Taro">
+                    半角英字
+                  </button>
+                  <button type="button" class="button button-small" data-zenkaku-example="&#x3000;">
+                    全角スペース
+                  </button>
+                  <button type="button" class="button button-small" data-zenkaku-example="🙂">
+                    絵文字
+                  </button>
+                  <button type="button" class="button button-small" data-zenkaku-example="山田&#9;太郎">
+                    タブ入り
+                  </button>
+                  <button type="button" class="button button-small" data-zenkaku-example="山田&#10;太郎">
+                    改行入り
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div class="col-lg-7">
-              <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold mb-3">Results</h3>
-                  <div class="border rounded-3 px-3 py-2 mb-2">
-                    <h4 class="h6 mb-1">問い合わせ先の判定</h4>
-                    <p id="contactFeedback" class="mb-0" role="status"></p>
-                  </div>
-                  <div id="demoResults" class="demo-result d-grid gap-2"></div>
+            <div class="panel-stack">
+              <div class="panel">
+                <h3 class="panel-title">Results</h3>
+                <div class="contact-result">
+                  <h4>問い合わせ先の判定</h4>
+                  <p id="contactFeedback" role="status"></p>
                 </div>
+                <div id="demoResults" class="demo-results"></div>
               </div>
-              <div class="card border-0 shadow-sm rounded-4 mt-4">
-                <div class="card-body p-4">
-                  <label for="postalCodeInput" class="form-label fw-semibold">郵便番号</label>
-                  <input
-                    id="postalCodeInput"
-                    class="form-control"
-                    value="150-0001"
-                    aria-describedby="postalCodeFeedback"
-                  />
-                  <p id="postalCodeFeedback" class="mt-2 mb-0" role="status"></p>
-                  <div id="postalCodeCorrection" class="mt-2" hidden>
-                    <button id="postalCodeSelectInvalid" type="button" class="btn btn-sm btn-outline-primary">
-                      該当文字を選択
-                    </button>
-                  </div>
-                  <div class="d-flex flex-wrap gap-2 mt-3">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="150-0001">
-                      有効な例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="１５０-０００１">
-                      全角数字の例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="150-001">
-                      桁数不足の例
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" data-postal-code-example="150--0001">
-                      余分なハイフンの例
-                    </button>
-                  </div>
+              <div class="panel">
+                <label for="postalCodeInput" class="field-label">郵便番号</label>
+                <input
+                  id="postalCodeInput"
+                  class="field-control"
+                  value="150-0001"
+                  aria-describedby="postalCodeFeedback"
+                />
+                <p id="postalCodeFeedback" class="feedback" role="status"></p>
+                <div id="postalCodeCorrection" class="feedback-action" hidden>
+                  <button id="postalCodeSelectInvalid" type="button" class="button button-small button-outline">
+                    該当文字を選択
+                  </button>
+                </div>
+                <div class="actions suggestions">
+                  <button type="button" class="button button-small" data-postal-code-example="150-0001">
+                    有効な例
+                  </button>
+                  <button type="button" class="button button-small" data-postal-code-example="１５０-０００１">
+                    全角数字の例
+                  </button>
+                  <button type="button" class="button button-small" data-postal-code-example="150-001">
+                    桁数不足の例
+                  </button>
+                  <button type="button" class="button button-small" data-postal-code-example="150--0001">
+                    余分なハイフンの例
+                  </button>
                 </div>
               </div>
             </div>
@@ -348,55 +264,55 @@ isMobilePhoneJP("090-1234-5678")
         </div>
       </section>
 
-      <section id="form-demo" class="py-5 border-top">
+      <section id="form-demo" class="section section-divided">
         <div class="container">
-          <div class="row justify-content-center">
-            <div class="col-lg-7">
-              <h2 class="fw-bold">問い合わせフォーム</h2>
+          <div class="form-layout">
+            <div>
+              <h2>問い合わせフォーム</h2>
               <p class="muted">3項目とも必須です。</p>
-              <form id="inquiryForm" class="card border-0 shadow-sm rounded-4 p-4" novalidate>
-                <div class="mb-3">
-                  <label for="inquiryPostalCode" class="form-label fw-semibold">郵便番号</label>
-                  <input id="inquiryPostalCode" class="form-control" placeholder="150-0001"
+              <form id="inquiryForm" class="panel inquiry-form" novalidate>
+                <div class="inquiry-field">
+                  <label for="inquiryPostalCode" class="field-label">郵便番号</label>
+                  <input id="inquiryPostalCode" class="field-control" placeholder="150-0001"
                     aria-describedby="inquiryPostalCodeFeedback" required />
-                  <p id="inquiryPostalCodeFeedback" class="invalid-feedback mb-0"></p>
+                  <p id="inquiryPostalCodeFeedback" class="invalid-feedback"></p>
                 </div>
-                <div class="mb-3">
-                  <label for="inquiryPhone" class="form-label fw-semibold">電話番号</label>
-                  <input id="inquiryPhone" type="tel" class="form-control" placeholder="+81-3-1234-5678"
+                <div class="inquiry-field">
+                  <label for="inquiryPhone" class="field-label">電話番号</label>
+                  <input id="inquiryPhone" type="tel" class="field-control" placeholder="+81-3-1234-5678"
                     aria-describedby="inquiryPhoneHint inquiryPhoneFeedback" required />
-                  <div id="inquiryPhoneHint" class="form-text">固定電話または携帯電話の国内表記と +81 表記に対応しています。</div>
-                  <p id="inquiryPhoneFeedback" class="invalid-feedback mb-0"></p>
+                  <div id="inquiryPhoneHint" class="field-hint">固定電話または携帯電話の国内表記と +81 表記に対応しています。</div>
+                  <p id="inquiryPhoneFeedback" class="invalid-feedback"></p>
                 </div>
-                <div class="mb-3">
-                  <label for="inquiryFurigana" class="form-label fw-semibold">氏名のフリガナ</label>
-                  <input id="inquiryFurigana" class="form-control" placeholder="タナカ タロウ"
+                <div class="inquiry-field">
+                  <label for="inquiryFurigana" class="field-label">氏名のフリガナ</label>
+                  <input id="inquiryFurigana" class="field-control" placeholder="タナカ タロウ"
                     aria-describedby="inquiryFuriganaFeedback" required />
-                  <p id="inquiryFuriganaFeedback" class="invalid-feedback mb-0"></p>
+                  <p id="inquiryFuriganaFeedback" class="invalid-feedback"></p>
                 </div>
                 <div>
-                  <button type="submit" class="btn btn-primary">入力内容を確認</button>
+                  <button type="submit" class="button button-primary">入力内容を確認</button>
                 </div>
-                <p id="inquiryStatus" class="mt-3 mb-0" role="status"></p>
+                <p id="inquiryStatus" class="feedback" role="status"></p>
               </form>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="install" class="py-5 bg-light border-top border-bottom">
+      <section id="install" class="section section-tinted">
         <div class="container">
-          <div class="row g-4 align-items-center">
-            <div class="col-lg-5">
-              <h2 class="fw-bold">Install</h2>
-              <p class="muted mb-0">npm からインストールして使えます。</p>
+          <div class="section-layout">
+            <div>
+              <h2>Install</h2>
+              <p class="muted">npm からインストールして使えます。</p>
             </div>
-            <div class="col-lg-7">
-              <div class="d-flex gap-2">
-                <div class="code-block flex-grow-1 py-3">
+            <div>
+              <div class="copy-row">
+                <div class="code-block">
                   <code>npm install ja-form-validators</code>
                 </div>
-                <button class="btn btn-outline-secondary copy-button" data-copy="npm install ja-form-validators">
+                <button class="button copy-button" data-copy="npm install ja-form-validators">
                   Copy
                 </button>
               </div>
@@ -405,183 +321,133 @@ isMobilePhoneJP("090-1234-5678")
         </div>
       </section>
 
-      <section id="api" class="py-5">
+      <section id="api" class="section">
         <div class="container">
-          <div class="row justify-content-center mb-4">
-            <div class="col-lg-8 text-center">
-              <h2 class="fw-bold">API</h2>
-              <p class="muted mb-0">v1.7.0 の判定関数</p>
-            </div>
+          <div class="section-heading">
+            <h2>API</h2>
+            <p class="muted">v1.7.1 の判定関数</p>
           </div>
 
-          <div class="row g-4">
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">isPostalCodeJP</h3>
-                  <p class="muted">日本の郵便番号を判定します。</p>
-                  <code>150-0001</code> / <code>1500001</code>
-                </div>
-              </div>
+          <div class="card-grid">
+            <div class="panel api-panel">
+              <h3>isPostalCodeJP</h3>
+              <p class="muted">日本の郵便番号を判定します。</p>
+              <code>150-0001</code> / <code>1500001</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">validatePostalCodeJP</h3>
-                  <p class="muted">理由コードと、設定に応じて数字の桁数や修正箇所を返します。</p>
-                  <code>{ includeDetails: true }</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>validatePostalCodeJP</h3>
+              <p class="muted">理由コードと、設定に応じて数字の桁数や修正箇所を返します。</p>
+              <code>{ includeDetails: true }</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">isMobilePhoneJP</h3>
-                  <p class="muted">060・070・080・090 の携帯番号を判定します。060 の次の数字は 1〜9 が対象です。</p>
-                  <code>060-1234-5678</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>isMobilePhoneJP</h3>
+              <p class="muted">060・070・080・090 の携帯番号を判定します。060 の次の数字は 1〜9 が対象です。</p>
+              <code>060-1234-5678</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">isPhoneNumberJP</h3>
-                  <p class="muted">日本の電話番号っぽい形式を軽量に判定します。</p>
-                  <code>03-1234-5678</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>isPhoneNumberJP</h3>
+              <p class="muted">日本の電話番号っぽい形式を軽量に判定します。</p>
+              <code>03-1234-5678</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">isStrictPhoneNumberJP</h3>
-                  <p class="muted"><code>kinds</code> で番号の種類、<code>format</code> で表記を選べます。<code>kindMatching</code> で種類の判定方法を切り替えられます。</p>
-                  <code>{ kinds: ["landline", "mobile"], format: "either" }</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>isStrictPhoneNumberJP</h3>
+              <p class="muted"><code>kinds</code> で番号の種類、<code>format</code> で表記を選べます。<code>kindMatching</code> で種類の判定方法を切り替えられます。</p>
+              <code>{ kinds: ["landline", "mobile"], format: "either" }</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold text-break">validateStrictPhoneNumberJP</h3>
-                  <p class="muted">理由コードと、設定に応じて形式を直す手がかりを返します。</p>
-                  <code>{ ok: false, reason: "format_not_allowed" }</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>validateStrictPhoneNumberJP</h3>
+              <p class="muted">理由コードと、設定に応じて形式を直す手がかりを返します。</p>
+              <code>{ ok: false, reason: "format_not_allowed" }</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">isLandlinePhoneJP</h3>
-                  <p class="muted">固定電話の番号と市外局番に合った区切りを確認します。</p>
-                  <code>03-1234-5678</code> / <code>0312345678</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>isLandlinePhoneJP</h3>
+              <p class="muted">固定電話の番号と市外局番に合った区切りを確認します。</p>
+              <code>03-1234-5678</code> / <code>0312345678</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">isKatakana</h3>
-                  <p class="muted">全角カタカナ、長音、中黒、空白を許可します。</p>
-                  <code>タナカ タロウ</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>isKatakana</h3>
+              <p class="muted">全角カタカナ、長音、中黒、空白を許可します。</p>
+              <code>タナカ タロウ</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">isFurigana</h3>
-                  <p class="muted">全角カタカナを1文字以上含むフリガナを判定します。NFC で濁点・半濁点を合成できます。</p>
-                  <code>{ normalization: "NFC" }</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>isFurigana</h3>
+              <p class="muted">全角カタカナを1文字以上含むフリガナを判定します。NFC で濁点・半濁点を合成できます。</p>
+              <code>{ normalization: "NFC" }</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">validateFurigana</h3>
-                  <p class="muted">フリガナを判定し、フォームの案内に使える理由コードを返します。</p>
-                  <code>{ ok: false, reason: "invalid_character" }</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>validateFurigana</h3>
+              <p class="muted">フリガナを判定し、フォームの案内に使える理由コードを返します。</p>
+              <code>{ ok: false, reason: "invalid_character" }</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">isZenkaku</h3>
-                  <p class="muted">空文字や表示可能な半角ASCIIを弾きます。半角カタカナと制御文字の拒否も設定できます。</p>
-                  <code>{ rejectControlCharacters: true }</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>isZenkaku</h3>
+              <p class="muted">空文字や表示可能な半角ASCIIを弾きます。半角カタカナと制御文字の拒否も設定できます。</p>
+              <code>{ rejectControlCharacters: true }</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">validateZenkaku</h3>
-                  <p class="muted">理由コードと、設定に応じて問題のある文字と位置を返します。</p>
-                  <code>{ includeInvalidCharacter: true }</code>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>validateZenkaku</h3>
+              <p class="muted">理由コードと、設定に応じて問題のある文字と位置を返します。</p>
+              <code>{ includeInvalidCharacter: true }</code>
             </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                  <h3 class="h5 fw-bold">Design policy</h3>
-                  <p class="muted mb-0">正規化、整形、住所解析、メール検証は行いません。</p>
-                </div>
-              </div>
+            <div class="panel api-panel">
+              <h3>Design policy</h3>
+              <p class="muted">正規化、整形、住所解析、メール検証は行いません。</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="cdn" class="py-5 bg-light border-top border-bottom">
+      <section id="cdn" class="section section-tinted">
         <div class="container">
-          <div class="row g-4">
-            <div class="col-lg-5">
-              <h2 class="fw-bold">CDN</h2>
-              <p class="muted">
-                npm公開後は unpkg や jsDelivr から ESM として読み込めます。
-              </p>
-            </div>
-            <div class="col-lg-7">
-              <div class="mb-3">
-                <div class="d-flex gap-2">
-                  <div class="code-block flex-grow-1 py-3">
-                    <code>https://unpkg.com/ja-form-validators@1.7.0/dist/index.js</code>
-                  </div>
-                  <button
-                    class="btn btn-outline-secondary copy-button"
-                    data-copy="https://unpkg.com/ja-form-validators@1.7.0/dist/index.js"
-                  >
-                    Copy
-                  </button>
-                </div>
-              </div>
+          <div class="section-heading">
+            <h2>CDN</h2>
+            <p>どちらの CDN からでも、npm で公開されたパッケージを ES モジュールとして読み込めます。</p>
+          </div>
+          <div class="cdn-grid">
+            <div class="cdn-provider">
+              <h3>unpkg</h3>
               <div class="code-block">
-<pre class="mb-0"><code>&lt;script type="module"&gt;
-  import { isPostalCodeJP } from "https://unpkg.com/ja-form-validators@1.7.0/dist/index.js"
+<pre><code>&lt;script type="module"&gt;
+  import { isPostalCodeJP } from
+    "https://unpkg.com/ja-form-validators/dist/index.js"
 
   console.log(isPostalCodeJP("150-0001"))
 &lt;/script&gt;</code></pre>
               </div>
+              <button type="button" class="button copy-button" data-copy="https://unpkg.com/ja-form-validators/dist/index.js">
+                Copy unpkg URL
+              </button>
+            </div>
+            <div class="cdn-provider">
+              <h3>jsDelivr</h3>
+              <div class="code-block">
+<pre><code>&lt;script type="module"&gt;
+  import { isPostalCodeJP } from
+    "https://cdn.jsdelivr.net/npm/ja-form-validators/dist/index.js"
+
+  console.log(isPostalCodeJP("150-0001"))
+&lt;/script&gt;</code></pre>
+              </div>
+              <button type="button" class="button copy-button" data-copy="https://cdn.jsdelivr.net/npm/ja-form-validators/dist/index.js">
+                Copy jsDelivr URL
+              </button>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="py-5">
+      <section id="normalize" class="section">
         <div class="container">
-          <div class="row g-4 align-items-center">
-            <div class="col-lg-5">
-              <h2 class="fw-bold">Works with normalize-ja-input</h2>
-              <p class="muted mb-0">
+          <div class="section-layout">
+            <div>
+              <h2>Works with normalize-ja-input</h2>
+              <p class="muted">
                 全角数字やハイフン表記のゆれを受け付けるには、判定前に <code>normalize-ja-input</code> で入力を整えます。
               </p>
             </div>
-            <div class="col-lg-7">
+            <div>
               <div class="code-block">
-<pre class="mb-0"><code>import { normalizeJaInput } from "normalize-ja-input"
+<pre><code>import { normalizeJaInput } from "normalize-ja-input"
 import { isStrictPhoneNumberJP } from "ja-form-validators"
 
 const value = normalizeJaInput("０９０ー１２３４ー５６７８")
@@ -589,25 +455,94 @@ const value = normalizeJaInput("０９０ー１２３４ー５６７８")
 isStrictPhoneNumberJP(value)
 // true</code></pre>
               </div>
-              <button id="normalizeExample" class="btn btn-outline-primary mt-3" type="button">
+              <button id="normalizeExample" class="button button-outline feedback-action" type="button">
                 正規化して判定する
               </button>
-              <p id="normalizeResult" class="mt-2 mb-0" role="status"></p>
+              <p id="normalizeResult" class="feedback" role="status"></p>
             </div>
           </div>
         </div>
       </section>
+
+      <section id="related" class="section section-tinted">
+        <div class="container">
+          <div class="section-heading">
+            <h2>関連ライブラリ</h2>
+            <p>入力補助や検証前の正規化、外部連携に使える Fusai Hanabi OSS のライブラリです。</p>
+          </div>
+          <ul class="card-grid related-grid">
+            <li class="panel">
+              <h3><a href="https://github.com/fusaihanabi/normalize-ja-input">normalize-ja-input</a></h3>
+              <p>検証前に全角数字、空白、ハイフンなどの表記ゆれを整えます。</p>
+              <a href="https://fusaihanabi.github.io/normalize-ja-input/" aria-label="normalize-ja-input のライブデモ">ライブデモ</a>
+            </li>
+            <li class="panel">
+              <h3><a href="https://github.com/fusaihanabi/ja-ime-utils">ja-ime-utils</a></h3>
+              <p>IME の変換確定とフォーム送信を区別し、確定した値を検証できます。</p>
+              <a href="https://fusaihanabi.github.io/ja-ime-utils/" aria-label="ja-ime-utils のライブデモ">ライブデモ</a>
+            </li>
+            <li class="panel">
+              <h3><a href="https://github.com/fusaihanabi/ja-input-mask">ja-input-mask</a></h3>
+              <p>電話番号や郵便番号などを入力中に整形し、貼り付けやカーソル操作にも対応します。</p>
+              <a href="https://fusaihanabi.github.io/ja-input-mask/" aria-label="ja-input-mask のライブデモ">ライブデモ</a>
+            </li>
+            <li class="panel">
+              <h3><a href="https://github.com/fusaihanabi/ja-char-check">ja-char-check</a></h3>
+              <p>保存や外部連携の前に、文字集合・文字コードの互換性やバイト数を確認できます。</p>
+              <a href="https://fusaihanabi.github.io/ja-char-check/" aria-label="ja-char-check のライブデモ">ライブデモ</a>
+            </li>
+            <li class="panel">
+              <h3><a href="https://github.com/fusaihanabi/tiny-ja-date">tiny-ja-date</a></h3>
+              <p>日本語の日付表示や、暦日・営業日の計算に使えます。</p>
+              <a href="https://fusaihanabi.github.io/tiny-ja-date/" aria-label="tiny-ja-date のライブデモ">ライブデモ</a>
+            </li>
+            <li class="panel">
+              <h3><a href="https://github.com/fusaihanabi/tiny-ja-money">tiny-ja-money</a></h3>
+              <p>円単位の金額を読み取り・整形し、消費税や按分を計算できます。</p>
+              <a href="https://fusaihanabi.github.io/tiny-ja-money/" aria-label="tiny-ja-money のライブデモ">ライブデモ</a>
+            </li>
+            <li class="panel">
+              <h3><a href="https://github.com/fusaihanabi/ja-zengin-utils">ja-zengin-utils</a></h3>
+              <p>全銀カナや総合振込の120バイト固定長ファイルを扱えます。</p>
+              <a href="https://fusaihanabi.github.io/ja-zengin-utils/" aria-label="ja-zengin-utils のライブデモ">ライブデモ</a>
+            </li>
+          </ul>
+        </div>
+      </section>
     </main>
 
-    <footer class="py-4 border-top bg-white">
-      <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
-        <span class="muted">本体 MIT ／ <a href="./LICENSE-libphonenumber.txt">固定電話データ Apache 2.0</a></span>
-        <span class="muted"><a href="https://dl.fusai-hanabi.com/">dl.fusai-hanabi.com</a></span>
-        <span class="muted">Built for small Japanese form validation.</span>
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span>本体 MIT ／ <a href="./LICENSE-libphonenumber.txt">固定電話データ Apache 2.0</a></span>
+        <a href="https://github.com/fusaihanabi/ja-form-validators#readme">日本語 README</a>
+        <a href="https://github.com/fusaihanabi/ja-form-validators/blob/main/README.en.md">English README</a>
+        <a href="https://dl.fusai-hanabi.com/">Fusai Hanabi OSS</a>
       </div>
     </footer>
 
-    <script src="https://unpkg.com/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+    <script>
+      const navToggle = document.querySelector(".nav-toggle")
+      const navLinks = document.getElementById("navLinks")
+      navToggle.hidden = false
+
+      navToggle.addEventListener("click", () => {
+        const isOpen = navToggle.getAttribute("aria-expanded") === "true"
+        navToggle.setAttribute("aria-expanded", String(!isOpen))
+      })
+
+      navLinks.addEventListener("click", event => {
+        if (event.target.closest("a")) {
+          navToggle.setAttribute("aria-expanded", "false")
+        }
+      })
+
+      navToggle.closest("nav").addEventListener("keydown", event => {
+        if (event.key === "Escape" && navToggle.getAttribute("aria-expanded") === "true") {
+          navToggle.setAttribute("aria-expanded", "false")
+          navToggle.focus()
+        }
+      })
+    </script>
     <script type="module">
       import {
         isFurigana,
@@ -694,9 +629,9 @@ isStrictPhoneNumberJP(value)
           .map(([name, fn]) => {
             const ok = fn(value)
             return `
-              <div class="d-flex align-items-center justify-content-between border rounded-3 px-3 py-2">
+              <div class="result-row">
                 <code>${name}</code>
-                <span class="badge ${ok ? "text-bg-success" : "text-bg-secondary"}">${ok}</span>
+                <span class="result-value${ok ? " is-match" : ""}">${ok}</span>
               </div>
             `
           })

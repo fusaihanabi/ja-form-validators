@@ -1,6 +1,8 @@
 # ja-form-validators
 
-Tiny TypeScript validators for Japanese form inputs.
+[English](README.en.md) · [ライブデモ](https://fusaihanabi.github.io/ja-form-validators/) · [API](#api) · [関連ライブラリ](#関連ライブラリ) · [変更履歴](CHANGELOG.md)
+
+日本向けフォームの入力形式を判定する、小さな TypeScript ライブラリです。
 
 - 郵便番号
 - 携帯電話番号
@@ -15,6 +17,8 @@ Tiny TypeScript validators for Japanese form inputs.
 ```bash
 npm install ja-form-validators
 ```
+
+ブラウザでは、[unpkg](https://unpkg.com/ja-form-validators/dist/index.js) または [jsDelivr](https://cdn.jsdelivr.net/npm/ja-form-validators/dist/index.js) から ES モジュールを読み込めます。[CDN の使用例](https://fusaihanabi.github.io/ja-form-validators/#cdn)
 
 `0.9.0` から更新する場合は、電話番号判定の既定値変更を確認してください。 [変更履歴](CHANGELOG.md)
 
@@ -112,7 +116,7 @@ const errors = validateInquiry({
 
 ### `isPostalCodeJP(value: string): boolean`
 
-Checks whether the value is a Japanese postal code.
+日本の郵便番号の形式を判定します。
 
 ```ts
 isPostalCodeJP("150-0001") // true
@@ -183,9 +187,7 @@ isMobilePhoneJP("03-1234-5678")  // false
 
 ### `isPhoneNumberJP(value: string): boolean`
 
-Checks whether the value looks like a Japanese phone number.
-
-This is intentionally lightweight and not a complete phone-number parser.
+日本の電話番号らしい形式かを簡易判定します。番号の種類や区切り位置を確認する場合は `isStrictPhoneNumberJP` を使います。
 
 ```ts
 isPhoneNumberJP("03-1234-5678")  // true
@@ -331,7 +333,7 @@ isStrictPhoneNumberJP("08001234567", { kinds: ["mobile"], kindMatching: "compati
 
 ### `isKatakana(value: string): boolean`
 
-Checks whether the value contains only full-width katakana, spaces, long vowel marks, and middle dots.
+全角カタカナ、空白、長音符、中黒で構成されているかを判定します。
 
 ```ts
 isKatakana("タナカ") // true
@@ -457,7 +459,7 @@ function selectInvalidCharacter(input: HTMLInputElement | HTMLTextAreaElement) {
 
 ## Works great with normalize-ja-input
 
-全角数字・空白・ハイフンの表記ゆれを整える場合は、判定前に `normalize-ja-input` を使えます。フリガナの濁点・半濁点の合成には、フリガナ判定の `normalization: "NFC"` を指定できます。
+全角数字・空白・ハイフンの表記ゆれを整える場合は、判定前に `normalize-ja-input` を使えます。フリガナの濁点・半濁点の合成には、フリガナ判定の `normalization: "NFC"` を指定できます。[正規化してから判定するデモ](https://fusaihanabi.github.io/ja-form-validators/#normalize)
 
 ```ts
 import { normalizeJaInput } from "normalize-ja-input"
@@ -471,7 +473,7 @@ isStrictPhoneNumberJP(value)
 
 ## Design policy
 
-`ja-form-validators` only validates strings.
+`ja-form-validators` は文字列の入力形式を判定します。正規化や入力中の整形には、用途に応じて関連ライブラリを組み合わせられます。
 
 ---
 
@@ -484,6 +486,22 @@ isStrictPhoneNumberJP(value)
 
 `npm run build` は配布用の JavaScript と型定義を生成し、デモが読み込む `docs/validators.js` と `docs/landline-metadata.js` を更新します。
 ローカルでデモを確認する場合は、`docs/` を静的ファイルサーバーで配信してください。
+
+## 関連ライブラリ
+
+フォームでは、IME の変換が確定した値を正規化してから `ja-form-validators` で検証できます。入力補助や外部連携には、用途に応じて Fusai Hanabi OSS の各ライブラリを組み合わせられます。
+
+| ライブラリ | 用途 | デモ |
+| --- | --- | --- |
+| [normalize-ja-input](https://github.com/fusaihanabi/normalize-ja-input) | 検証前に全角数字、空白、ハイフンなどの表記ゆれを正規化 | [ライブデモ](https://fusaihanabi.github.io/normalize-ja-input/) |
+| [ja-ime-utils](https://github.com/fusaihanabi/ja-ime-utils) | 日本語 IME の変換状態を追跡し、確定時の Enter とフォーム送信を区別 | [ライブデモ](https://fusaihanabi.github.io/ja-ime-utils/) |
+| [ja-input-mask](https://github.com/fusaihanabi/ja-input-mask) | 電話番号や郵便番号などを入力中に整形し、貼り付けやカーソル操作にも対応 | [ライブデモ](https://fusaihanabi.github.io/ja-input-mask/) |
+| [ja-char-check](https://github.com/fusaihanabi/ja-char-check) | 保存や外部連携の前に、文字集合・文字コードの互換性やバイト数を検査 | [ライブデモ](https://fusaihanabi.github.io/ja-char-check/) |
+| [tiny-ja-date](https://github.com/fusaihanabi/tiny-ja-date) | 日本語の日付表示や暦日・営業日の計算 | [ライブデモ](https://fusaihanabi.github.io/tiny-ja-date/) |
+| [tiny-ja-money](https://github.com/fusaihanabi/tiny-ja-money) | 円単位の金額の読み取り・整形、消費税や按分の計算 | [ライブデモ](https://fusaihanabi.github.io/tiny-ja-money/) |
+| [ja-zengin-utils](https://github.com/fusaihanabi/ja-zengin-utils) | 全銀カナや総合振込の120バイト固定長ファイルを処理 | [ライブデモ](https://fusaihanabi.github.io/ja-zengin-utils/) |
+
+[Fusai Hanabi OSS 公式サイト](https://dl.fusai-hanabi.com/)
 
 ## 配布用ファイルの検証
 
@@ -502,12 +520,6 @@ npm run build
 ```
 
 ---
-
-It does not:
-
-- format values
-- parse addresses
-- validate emails or URLs
 
 ## License
 

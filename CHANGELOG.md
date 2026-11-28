@@ -1,5 +1,11 @@
 # 変更履歴
 
+## 1.7.1
+
+- デモの Bootstrap をローカルの CSS と JavaScript に置き換えました。
+- デモに unpkg と jsDelivr の読み込み例を掲載しました。
+- 英語版 README を追加し、両言語の README とデモで関連ライブラリ7件を案内しました。
+
 ## 1.7.0
 
 - `validateStrictPhoneNumberJP` に `includeDetails` を追加しました。同じフォーム設定で修正候補が通る場合、`+81` の後の国内用の `0` や不足したハイフンについて、`invalid_format` に詳細コードを添えます。省略時は従来の結果形式です。
